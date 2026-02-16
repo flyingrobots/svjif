@@ -1,0 +1,48 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 320" role="img" aria-labelledby="title desc">
+  <title id="title">SVJIf logo</title>
+  <desc id="desc">SVJIf wordmark with angular bracket mark and lowercase final f emphasis</desc>
+
+  <defs>
+    <linearGradient id="g" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#7C3AED"/>
+      <stop offset="55%" stop-color="#06B6D4"/>
+      <stop offset="100%" stop-color="#22C55E"/>
+    </linearGradient>
+
+    <filter id="softGlow" x="-20%" y="-50%" width="140%" height="200%">
+      <feGaussianBlur stdDeviation="6" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+
+    <style>
+      .bg { fill: #0B0F14; }
+      .mark { fill: none; stroke: url(#g); stroke-width: 16; stroke-linecap: round; stroke-linejoin: round; }
+      .word { font-family: "Inter", "Segoe UI", "Helvetica Neue", Arial, sans-serif; font-weight: 800; letter-spacing: 2px; }
+      .main { fill: #E5E7EB; }
+      .f { fill: url(#g); font-style: italic; }
+      .tag { fill: #93A1B2; font-family: "Inter", "Segoe UI", Arial, sans-serif; font-size: 32px; letter-spacing: 1px; }
+    </style>
+  </defs>
+
+  <!-- background -->
+  <rect class="bg" x="0" y="0" width="1200" height="320" rx="24"/>
+
+  <!-- geometric mark: <> + slash vibe -->
+  <g transform="translate(70,76)" filter="url(#softGlow)">
+    <path class="mark" d="M120 20 L20 84 L120 148"/>
+    <path class="mark" d="M200 16 L150 152"/>
+    <path class="mark" d="M230 20 L330 84 L230 148"/>
+  </g>
+
+  <!-- wordmark -->
+  <g transform="translate(420,122)">
+    <text class="word main" font-size="118">
+      <tspan>S</tspan><tspan dx="8">V</tspan><tspan dx="8">J</tspan><tspan dx="8">I</tspan><tspan class="f" dx="6">f</tspan>
+    </text>
+    <text class="tag" x="2" y="86">Scene Vector Jraphics Interchange Format</text>
+    <text class="tag" x="2" y="126">/ɛsːviːdʒiːf/</text>
+  </g>
+</svg>

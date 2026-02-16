@@ -1,0 +1,6 @@
+
+> @svjif/compiler-core@0.1.0 typecheck /Users/james/git/SVJif/packages/compiler-core
+> tsc --noEmit
+
+src/compile/compile.ts(135,16): error TS6133: 'parseStub' is declared but its value is never read.
+ ELIFECYCLE  Command failed with exit code 2.

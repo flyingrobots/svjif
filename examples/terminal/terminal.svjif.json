@@ -1,0 +1,174 @@
+{
+  "version": "0.1.0",
+  "meta": {
+    "generator": "manual",
+    "source": "terminal-poc",
+    "hash": "sha256:manual",
+    "timestamp": "2026-02-16T00:00:00Z"
+  },
+  "canvas": {
+    "width": 800,
+    "height": 600,
+    "units": "px",
+    "origin": "top-left"
+  },
+  "nodes": [
+    {
+      "id": "bg",
+      "type": "rect",
+      "bounds": [0, 0, 800, 600],
+      "style": {
+        "paint": {
+          "fill": {
+            "type": "solid",
+            "color": "#1a1a1a"
+          },
+          "cornerRadius": 8
+        }
+      },
+      "static": true
+    },
+    {
+      "id": "header",
+      "type": "rect",
+      "bounds": [0, 0, 800, 40],
+      "style": {
+        "paint": {
+          "fill": {
+            "type": "solid",
+            "color": "#2a2a2a"
+          }
+        }
+      },
+      "static": true
+    },
+    {
+      "id": "header-text",
+      "type": "text",
+      "bounds": [20, 10, 200, 20],
+      "content": "Terminal v0.3",
+      "style": {
+        "text": {
+          "font": "Fira Code",
+          "size": 14,
+          "weight": 400,
+          "color": "#00ff00"
+        }
+      },
+      "static": true
+    },
+    {
+      "id": "output-line-1",
+      "type": "text",
+      "bounds": [20, 60, 760, 20],
+      "content": "$ ls -la",
+      "style": {
+        "text": {
+          "font": "Fira Code",
+          "size": 14,
+          "weight": 400,
+          "color": "#00ff00"
+        }
+      },
+      "static": false,
+      "invalidatesOn": ["content"]
+    },
+    {
+      "id": "output-line-2",
+      "type": "text",
+      "bounds": [20, 90, 760, 20],
+      "content": "total 64",
+      "style": {
+        "text": {
+          "font": "Fira Code",
+          "size": 14,
+          "weight": 400,
+          "color": "#cccccc"
+        }
+      },
+      "static": false
+    },
+    {
+      "id": "output-line-3",
+      "type": "text",
+      "bounds": [20, 120, 760, 20],
+      "content": "drwxr-xr-x  12 user  staff   384 Feb 16 01:00 .",
+      "style": {
+        "text": {
+          "font": "Fira Code",
+          "size": 14,
+          "weight": 400,
+          "color": "#cccccc"
+        }
+      },
+      "static": false
+    },
+    {
+      "id": "output-line-4",
+      "type": "text",
+      "bounds": [20, 150, 760, 20],
+      "content": "drwxr-xr-x  8 user  staff   256 Feb 15 18:30 ..",
+      "style": {
+        "text": {
+          "font": "Fira Code",
+          "size": 14,
+          "weight": 400,
+          "color": "#cccccc"
+        }
+      },
+      "static": false
+    },
+    {
+      "id": "output-line-5",
+      "type": "text",
+      "bounds": [20, 180, 760, 20],
+      "content": "-rw-r--r--  1 user  staff  1024 Feb 16 00:45 package.json",
+      "style": {
+        "text": {
+          "font": "Fira Code",
+          "size": 14,
+          "weight": 400,
+          "color": "#cccccc"
+        }
+      },
+      "static": false
+    },
+    {
+      "id": "output-line-6",
+      "type": "text",
+      "bounds": [20, 210, 760, 20],
+      "content": "drwxr-xr-x  5 user  staff   160 Feb 15 12:00 src",
+      "style": {
+        "text": {
+          "font": "Fira Code",
+          "size": 14,
+          "weight": 400,
+          "color": "#4a9eff"
+        }
+      },
+      "static": false
+    },
+    {
+      "id": "prompt",
+      "type": "text",
+      "bounds": [20, 250, 760, 20],
+      "content": "$ █",
+      "style": {
+        "text": {
+          "font": "Fira Code",
+          "size": 14,
+          "weight": 400,
+          "color": "#00ff00"
+        }
+      },
+      "static": false
+    }
+  ],
+  "tokens": {
+    "bg-dark": "#1a1a1a",
+    "bg-header": "#2a2a2a",
+    "color-success": "#00ff00",
+    "color-text": "#cccccc",
+    "color-directory": "#4a9eff"
+  }
+}
