@@ -61,6 +61,8 @@ function getDirectiveArgValue(
   }
 }
 
+const KNOWN_SVJIF_DIRS = new Set(['svjif_scene', 'svjif_node', 'svjif_bind', 'svjif_style']);
+
 /**
  * Extracts all @svjif_node field definitions from the scene type.
  * - `SVJIF_W_UNUSED_FIELD` only for unknown directives with `svjif_` prefix
@@ -82,8 +84,7 @@ export function extractNodes(
     if (field.directives) {
       for (const dir of field.directives) {
         if (dir.name.value.startsWith('svjif_') && dir.name.value !== 'svjif_node') {
-          const knownSvjifDirs = new Set(['svjif_scene', 'svjif_node', 'svjif_bind', 'svjif_style']);
-          if (!knownSvjifDirs.has(dir.name.value)) {
+          if (!KNOWN_SVJIF_DIRS.has(dir.name.value)) {
             diagnostics.push({
               code: SVJifErrorCode.W_UNUSED_FIELD,
               severity: 'warning',
@@ -133,7 +134,12 @@ export function extractNodes(
           props = parsed as Record<string, unknown>;
         }
       } catch {
-        // Ignore invalid props JSON — field will still be included with geometry only
+        diagnostics.push({
+          code: SVJifErrorCode.W_UNUSED_FIELD,
+          severity: 'warning',
+          message: `Field "${field.name.value}" has an invalid props JSON value — ignoring props argument`,
+          location: sourceRef,
+        });
       }
     }
 
