@@ -1,0 +1,5 @@
+
+> @svjif/schema-graphql@0.1.0 test /Users/james/git/SVJif/packages/schema-graphql
+> vitest
+
+ ELIFECYCLE  Test failed. See above for more details.

@@ -139,6 +139,9 @@ importers:
       '@svjif/compiler-core':
         specifier: workspace:*
         version: link:../compiler-core
+      '@svjif/schema-graphql':
+        specifier: workspace:*
+        version: link:../schema-graphql
     devDependencies:
       '@types/node':
         specifier: ^20.0.0

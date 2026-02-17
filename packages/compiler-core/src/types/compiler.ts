@@ -30,6 +30,7 @@ export interface CompileMetadata {
   irVersion?: string;
   inputFormat: InputFormat;
   elapsedMs: number;
+  hashAlgorithm?: string;
 }
 
 export interface CompileResult {

@@ -12,7 +12,9 @@ import {
   InternalCompilerError,
 } from '../errors';
 
-import { parseInputToCanonicalAst } from './parseInput';
+import { parseInputToCanonicalAst, type ParseInputDeps } from './parseInput';
+import { stableStringify } from '../util/stableStringify';
+import { HASH_ALGORITHM } from '../canonical/hashing';
 
 // TODO: wire these modules as you implement phases
 // import { normalizeCanonicalAst } from '../canonical/normalize';
@@ -36,7 +38,7 @@ const DEFAULT_OPTIONS: CompileOptions = {
 
 const COMPILER_VERSION = '0.1.0-dev';
 
-export async function compile(input: CompilerInput): Promise<CompileResult> {
+export async function compile(input: CompilerInput, deps?: ParseInputDeps): Promise<CompileResult> {
   const started = Date.now();
   const options = mergeOptions(DEFAULT_OPTIONS, input.options);
   const diagnostics: Diagnostic[] = [];
@@ -44,7 +46,7 @@ export async function compile(input: CompilerInput): Promise<CompileResult> {
 
   try {
     // Phase 1: Parse -> Canonical AST
-    const ast = await parseInputToCanonicalAst(input, diagnostics);
+    const ast = await parseInputToCanonicalAst(input, diagnostics, deps);
 
     // Phase 2: Canonicalization
     // TODO: if (options.canonicalize) ast = normalizeCanonicalAst(ast, options)
@@ -114,6 +116,7 @@ function finalize(
       irVersion: ok ? 'svjif-ir/1' : undefined,
       inputFormat,
       elapsedMs: Date.now() - started,
+      hashAlgorithm: HASH_ALGORITHM,
     },
   };
 }
@@ -146,16 +149,27 @@ function validateStub(ast: CanonicalSceneAst | undefined): Diagnostic[] {
 }
 
 function emitIrStub(ast: CanonicalSceneAst | undefined) {
-  const content = JSON.stringify(
+  // Sort nodes deterministically: ascending zIndex, then ascending id
+  const rawNodes = ast?.nodes ?? [];
+  const sortedNodes = [...rawNodes]
+    .sort((a, b) => {
+      const zA = a.zIndex ?? 0;
+      const zB = b.zIndex ?? 0;
+      if (zA !== zB) return zA - zB;
+      return a.id < b.id ? -1 : a.id > b.id ? 1 : 0;
+    })
+    // Strip sourceRef from IR output: it contains source locations that vary with whitespace
+    .map(({ sourceRef: _sourceRef, ...node }) => node);
+
+  const content = stableStringify(
     {
       irVersion: 'svjif-ir/1',
       scene: ast?.scene ?? null,
-      nodes: ast?.nodes ?? [],
+      nodes: sortedNodes,
       bindings: ast?.bindings ?? [],
       animations: ast?.animations ?? [],
     },
-    null,
-    2,
+    { space: 2 },
   );
 
   return {

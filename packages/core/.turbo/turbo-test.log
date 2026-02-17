@@ -1,0 +1,19 @@
+
+> @svjif/core@0.1.0 test /Users/james/git/SVJif/packages/core
+> vitest
+
+
+ DEV  v1.6.1 /Users/james/git/SVJif/packages/core
+
+ ✓ src/domain/models/SVJifScene.test.ts  (3 tests) 2ms
+ ✓ src/domain/models/SVJifNode.test.ts  (4 tests) 3ms
+
+ Test Files  2 passed (2)
+      Tests  7 passed (7)
+   Start at  19:02:47
+   Duration  328ms (transform 97ms, setup 1ms, collect 107ms, tests 5ms, environment 0ms, prepare 177ms)
+
+
+ PASS  Waiting for file changes...
+       press h to show help, press q to quit
+ ELIFECYCLE  Test failed. See above for more details.

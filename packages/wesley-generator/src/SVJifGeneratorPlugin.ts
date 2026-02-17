@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 // Replace "any" types with real Wesley types once you wire @wesley/core in package.json.
-import { compile, type CompilerInput } from '@svjif/compiler-core';
+import { compile, type CompilerInput, type ParseInputDeps } from '@svjif/compiler-core';
+import { graphqlToCanonicalAst } from '@svjif/schema-graphql';
 // import { GeneratorPlugin } from '@wesley/core';
 
 type WesleyPlanArtifact = { path: string; reason: string };
@@ -79,7 +80,8 @@ export class SVJifGeneratorPlugin {
       },
     };
 
-    const result = await compile(input);
+    const deps: ParseInputDeps = { graphqlToCanonicalAst };
+    const result = await compile(input, deps);
 
     for (const d of result.diagnostics) {
       const line = d.location ? `${d.location.file}:${d.location.line}:${d.location.column}` : 'unknown';

@@ -15,6 +15,11 @@ All compiler errors use stable, documented error codes. Never ignore or suppress
 **Message**: Input source is empty
 **Fix**: Provide non-empty SDL or canonical AST JSON input
 
+### `SVJIF_E_INPUT_INVALID_JSON`
+**Severity**: Error
+**Message**: Invalid JSON for canonical AST input
+**Fix**: Ensure the input is valid JSON. Check for syntax errors like trailing commas, unquoted keys, or encoding issues. This is a user-facing error, not a compiler bug.
+
 ### `SVJIF_E_SCENE_MISSING`
 **Severity**: Error
 **Message**: Scene definition is missing or invalid

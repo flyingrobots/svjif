@@ -1,0 +1,18 @@
+
+> @svjif/compiler-core@0.1.0 test /Users/james/git/SVJif/packages/compiler-core
+> vitest
+
+
+ DEV  v1.6.1 /Users/james/git/SVJif/packages/compiler-core
+
+ ✓ test/compile.golden.test.ts  (2 tests) 2ms
+
+ Test Files  1 passed (1)
+      Tests  2 passed (2)
+   Start at  19:02:48
+   Duration  258ms (transform 45ms, setup 0ms, collect 48ms, tests 2ms, environment 0ms, prepare 54ms)
+
+
+ PASS  Waiting for file changes...
+       press h to show help, press q to quit
+ ELIFECYCLE  Test failed. See above for more details.

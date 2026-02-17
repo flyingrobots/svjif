@@ -24,7 +24,8 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@svjif/compiler-core": "workspace:*"
+    "@svjif/compiler-core": "workspace:*",
+    "@svjif/schema-graphql": "workspace:*"
   },
   "devDependencies": {
     "@types/node": "^20.0.0",

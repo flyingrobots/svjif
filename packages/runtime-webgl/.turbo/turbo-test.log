@@ -1,0 +1,13 @@
+
+> @svjif/runtime-webgl@0.1.0 test /Users/james/git/SVJif/packages/runtime-webgl
+> vitest
+
+
+ DEV  v1.6.1 /Users/james/git/SVJif/packages/runtime-webgl
+
+include: **/*.{test,spec}.?(c|m)[jt]s?(x)
+exclude:  **/node_modules/**, **/dist/**, **/cypress/**, **/.{idea,git,cache,output,temp}/**, **/{karma,rollup,webpack,vite,vitest,jest,ava,babel,nyc,cypress,tsup,build,eslint,prettier}.config.*
+watch exclude:  **/node_modules/**, **/dist/**
+
+No test files found, exiting with code 1
+ ELIFECYCLE  Test failed. See above for more details.

@@ -123,9 +123,10 @@ function parseCanonicalAstJson(
     parsed = JSON.parse(input.source);
   } catch (cause) {
     diagnostics.push(
-      new ParseError(SVJifErrorCode.E_INTERNAL_INVARIANT, 'Invalid JSON for canonical AST input', {
+      new ParseError(SVJifErrorCode.E_INPUT_INVALID_JSON, 'Invalid JSON for canonical AST input', {
         cause,
         location: input.filename ? { file: input.filename, line: 1, column: 1 } : undefined,
+        hint: 'Ensure the input is valid JSON. Check for syntax errors like trailing commas or unquoted keys.',
       }).toDiagnostic(),
     );
     return undefined;
