@@ -156,4 +156,92 @@ describe('determinism', () => {
     const ir = JSON.parse(String(result.artifacts['scene.svjif.json'].content));
     expect(ir.nodes.map((n: { id: string }) => n.id)).toEqual(['node:z1', 'node:z2', 'node:z3']);
   });
+
+  it('10 shuffled node orderings of the same scene → identical IR hashes', async () => {
+    const baseNodes = [
+      { id: 'n:a', kind: 'Rect', props: { x: 0, y: 0, width: 10, height: 10, fill: '#f00' }, zIndex: 2 },
+      { id: 'n:b', kind: 'Text', props: { x: 0, y: 0, content: 'B', color: '#fff' }, zIndex: 1 },
+      { id: 'n:c', kind: 'Group', props: { x: 0, y: 0 }, zIndex: 3 },
+      { id: 'n:d', kind: 'Rect', props: { x: 5, y: 5, width: 5, height: 5, fill: '#00f' }, zIndex: 2 },
+    ];
+
+    function makeInput(nodes: typeof baseNodes): CompilerInput {
+      return {
+        ...BASE_INPUT,
+        source: JSON.stringify({
+          kind: 'Scene',
+          astVersion: '1',
+          scene: { id: 'scene:shuffle', width: 100, height: 100 },
+          nodes,
+          metadata: { sourceFormat: 'canonical-ast-json' },
+        }),
+      };
+    }
+
+    // Generate 10 shuffles
+    const shuffles: (typeof baseNodes)[] = [];
+    const seeded = [...baseNodes];
+    for (let s = 0; s < 10; s++) {
+      // Rotate by s positions
+      const rotated = [...seeded.slice(s % seeded.length), ...seeded.slice(0, s % seeded.length)];
+      shuffles.push(rotated);
+    }
+
+    const hashes = new Set<string>();
+    for (const shuffle of shuffles) {
+      const result = await compile(makeInput(shuffle));
+      expect(result.ok).toBe(true);
+      const ir = String(result.artifacts['scene.svjif.json'].content);
+      hashes.add(sha256(ir));
+    }
+
+    expect(hashes.size).toBe(1);
+  });
+
+  it('parent-before-child ordering guaranteed in output', async () => {
+    const input: CompilerInput = {
+      ...BASE_INPUT,
+      source: JSON.stringify({
+        kind: 'Scene',
+        astVersion: '1',
+        scene: { id: 'scene:parent-child', width: 100, height: 100 },
+        // Child listed before parent in input
+        nodes: [
+          { id: 'child', kind: 'Rect', props: { x: 0, y: 0, width: 10, height: 10 }, zIndex: 1, parentId: 'parent' },
+          { id: 'parent', kind: 'Group', props: { x: 0, y: 0 }, zIndex: 1 },
+        ],
+        metadata: { sourceFormat: 'canonical-ast-json' },
+      }),
+    };
+
+    const result = await compile(input);
+    expect(result.ok).toBe(true);
+
+    const ir = JSON.parse(String(result.artifacts['scene.svjif.json'].content));
+    const ids: string[] = ir.nodes.map((n: { id: string }) => n.id);
+    expect(ids.indexOf('parent')).toBeLessThan(ids.indexOf('child'));
+  });
+
+  it('tie-breaking: two same-zIndex same-kind nodes sorted by id bytewise', async () => {
+    const input: CompilerInput = {
+      ...BASE_INPUT,
+      source: JSON.stringify({
+        kind: 'Scene',
+        astVersion: '1',
+        scene: { id: 'scene:tiebreak', width: 100, height: 100 },
+        // 'n:z' > 'n:a' bytewise, so 'n:a' should come first
+        nodes: [
+          { id: 'n:z', kind: 'Group', props: {}, zIndex: 1 },
+          { id: 'n:a', kind: 'Group', props: {}, zIndex: 1 },
+        ],
+        metadata: { sourceFormat: 'canonical-ast-json' },
+      }),
+    };
+
+    const result = await compile(input);
+    expect(result.ok).toBe(true);
+
+    const ir = JSON.parse(String(result.artifacts['scene.svjif.json'].content));
+    expect(ir.nodes.map((n: { id: string }) => n.id)).toEqual(['n:a', 'n:z']);
+  });
 });
