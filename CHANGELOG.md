@@ -4,6 +4,21 @@
 
 ### Features
 
+- **`@svjif/compiler-core`**: Semantic validation engine — `validateCanonicalAst()` with two-tier rule registry; Tier 1 (structural: `sceneDimensions`, `nodeKindValid`, `duplicateId`, `danglingRef`, `cycleDetection`) gates Tier 2 (semantic: `requiredProps` per NodeKind); iterative Kahn's cycle detection passes 10k-node chains without stack overflow
+- **`@svjif/compiler-core`**: Deterministic IR emitter — `emitSvjifIrArtifact()` replaces stub; two-phase topological sort (Kahn's on `parentId` DAG, tie-broken `zIndex ASC → kind ASC → id ASC` bytewise); strips `sourceRef` and `__typename`
+- **`@svjif/compiler-core`**: Determinism certificate — `emitReceiptArtifact()` emits `scene.svjif.json.receipt` alongside IR containing `comparatorVersion`, `inputHash` (SHA-256 of `input.source`), `irVersion`, and `rulesetFingerprint` (SHA-256 of sorted rule IDs)
+- **`@svjif/compiler-core`**: TypeScript type emitter — `emitTypesArtifact()` replaces stub; `TypeEmitter` produces `NodeId` literal union, `SceneRoot` interface, per-kind node interfaces (`RectNode`, `TextNode`, …), and `SceneNode` discriminated union via token-based emission
+- **`@svjif/compiler-core`**: Identifier utilities — `toTypeIdentifier()` (NFKC normalize → PascalCase → reserved-keyword guard → invalid-start guard) and `buildIdentifierMap()` (bytewise-sorted collision resolution with `__N` suffix) in `src/util/identifiers.ts`
+- **`@svjif/compiler-core`**: All three stubs (`validateStub`, `emitIrStub`, `emitTypesStub`) removed from `compile.ts`; real implementations wired
+
+### Tests
+
+- **`@svjif/compiler-core`**: 40 new tests across 2 new test files and 2 extended files — `validateAst` (15), `emitTypes` (19), `determinism` +4, `compile.golden` +3; total 76 tests (up from 36)
+- Cycle detection verifies Tier 2 is suppressed when Tier 1 errors present
+- 10 shuffled input orderings of the same scene produce byte-identical IR (SHA-256 verified)
+- Parent-before-child ordering guaranteed in topological emitter output
+- Receipt `inputHash` verified against `sha256(input.source)` in golden tests; two compilations of identical input produce byte-identical receipts
+
 - **`@svjif/compiler-core`**: Add `SVJIF_E_INPUT_INVALID_JSON` error code for invalid JSON input (previously misclassified as `E_INTERNAL_INVARIANT`)
 - **`@svjif/compiler-core`**: Add `hashString()` and `deterministicId()` hashing utilities in `src/canonical/hashing.ts` with stable SHA-256 contract
 - **`@svjif/compiler-core`**: Export `hashString`, `deterministicId`, `HASH_ALGORITHM`, `GraphqlToCanonicalAst`, `ParseInputDeps` from package index
