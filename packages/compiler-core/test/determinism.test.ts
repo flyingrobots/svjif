@@ -155,7 +155,7 @@ describe('determinism', () => {
     expect(ir.nodes.map((n: { id: string }) => n.id)).toEqual(['node:z1', 'node:z2', 'node:z3']);
   });
 
-  it('4 rotated node orderings of the same scene → identical IR hashes', async () => {
+  it('4 distinct rotated node orderings of the same scene → identical IR hashes', async () => {
     const baseNodes = [
       { id: 'n:a', kind: 'Rect', props: { x: 0, y: 0, width: 10, height: 10, fill: '#f00' }, zIndex: 2 },
       { id: 'n:b', kind: 'Text', props: { x: 0, y: 0, content: 'B', color: '#fff' }, zIndex: 1 },
@@ -176,12 +176,11 @@ describe('determinism', () => {
       };
     }
 
-    // Generate 10 shuffles
+    // Generate 4 distinct rotations (seeded.length === 4, so s % 4 yields 4 unique offsets)
     const shuffles: (typeof baseNodes)[] = [];
     const seeded = [...baseNodes];
-    for (let s = 0; s < 10; s++) {
-      // Rotate by s positions
-      const rotated = [...seeded.slice(s % seeded.length), ...seeded.slice(0, s % seeded.length)];
+    for (let s = 0; s < seeded.length; s++) {
+      const rotated = [...seeded.slice(s), ...seeded.slice(0, s)];
       shuffles.push(rotated);
     }
 
