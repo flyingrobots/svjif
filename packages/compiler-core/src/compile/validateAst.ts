@@ -43,7 +43,8 @@ export function validateCanonicalAst(
   // ── Tier 1: Structural ────────────────────────────────────────────────────
 
   // 1. sceneDimensions
-  if (ast.scene.width <= 0 || ast.scene.height <= 0) {
+  if (!Number.isFinite(ast.scene.width) || ast.scene.width <= 0 ||
+      !Number.isFinite(ast.scene.height) || ast.scene.height <= 0) {
     diagnostics.push({
       code: SVJifErrorCode.E_SCENE_DIMENSIONS_INVALID,
       severity: 'error',
@@ -195,7 +196,8 @@ function detectCycles(ast: CanonicalSceneAst): string[] {
   }
 
   // Any node not processed is in a cycle
-  if (processed === ast.nodes.length) return [];
+  // Compare against inDegree.size (unique nodes) — not ast.nodes.length which includes duplicates
+  if (processed === inDegree.size) return [];
 
   const cycleNodes: string[] = [];
   for (const [id, deg] of inDegree) {

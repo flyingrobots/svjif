@@ -53,16 +53,7 @@ export async function compile(input: CompilerInput, deps?: ParseInputDeps): Prom
     }
 
     // Phase 3: Emit artifacts
-    if (options.emit.irJson && canonicalAst) {
-      const irArtifact = emitSvjifIrArtifact(canonicalAst);
-      artifacts['scene.svjif.json'] = irArtifact;
-
-      const irContent = typeof irArtifact.content === 'string' ? irArtifact.content : '';
-      artifacts['scene.svjif.json.receipt'] = emitReceiptArtifact(input, irContent, VALIDATION_RULE_IDS);
-    }
-    if (options.emit.tsTypes && canonicalAst) {
-      artifacts['types.ts'] = emitTypesArtifact(canonicalAst);
-    }
+    // Reject unsupported features before any artifacts are written
     if (options.emit.jsonSchema) {
       diagnostics.push({
         code: SVJifErrorCode.E_FEATURE_NOT_IMPLEMENTED,
@@ -71,6 +62,15 @@ export async function compile(input: CompilerInput, deps?: ParseInputDeps): Prom
         details: { feature: 'jsonSchema' },
       });
       return finalize(false, canonicalAst, artifacts, diagnostics, input.format, started);
+    }
+    if (options.emit.irJson && canonicalAst) {
+      const irArtifact = emitSvjifIrArtifact(canonicalAst);
+      artifacts['scene.svjif.json'] = irArtifact;
+
+      artifacts['scene.svjif.json.receipt'] = emitReceiptArtifact(input, irArtifact.content as string, VALIDATION_RULE_IDS);
+    }
+    if (options.emit.tsTypes && canonicalAst) {
+      artifacts['types.ts'] = emitTypesArtifact(canonicalAst);
     }
     if (options.emit.binaryPack) {
       diagnostics.push({
@@ -111,7 +111,7 @@ function finalize(
     diagnostics,
     metadata: {
       compilerVersion: COMPILER_VERSION,
-      irVersion: ok ? 'svjif-ir/1' : undefined,
+      irVersion: 'scene.svjif.json' in artifacts ? 'svjif-ir/1' : undefined,
       inputFormat,
       elapsedMs: Date.now() - started,
       hashAlgorithm: HASH_ALGORITHM,

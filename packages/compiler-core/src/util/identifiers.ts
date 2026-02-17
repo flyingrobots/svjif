@@ -29,6 +29,8 @@ export const RESERVED = new Set<string>([
   'object', 'override', 'private', 'protected', 'public', 'readonly', 'require',
   'set', 'string', 'symbol', 'undefined', 'unique', 'unknown', 'from', 'global',
   'bigint', 'intrinsic',
+  // Contextual keywords added in newer TypeScript / ECMAScript editions
+  'satisfies', 'accessor', 'using',
 ]);
 
 /**
@@ -93,26 +95,28 @@ export function buildIdentifierMap(
   sources: string[],
   opts: IdentifierOptions = DEFAULT_OPTS,
 ): Map<string, string> {
-  // Sort bytewise for deterministic collision resolution
-  const sorted = [...sources].sort(cmpStr);
+  // Sort indices bytewise by source value for deterministic collision resolution.
+  // Using indices (not values) preserves per-occurrence uniqueness for duplicate sources.
+  const sortedIndices = sources.map((_, i) => i).sort((a, b) => cmpStr(sources[a], sources[b]));
 
-  const used = new Map<string, number>(); // identifier → count
-  const sortedMap = new Map<string, string>(); // source → identifier
+  const used = new Map<string, number>(); // identifier base → count
+  const identifiers = new Array<string>(sources.length);
 
-  for (const src of sorted) {
+  for (const idx of sortedIndices) {
+    const src = sources[idx];
     let ident = toTypeIdentifier(src, opts);
     const count = used.get(ident) ?? 0;
     used.set(ident, count + 1);
     if (count > 0) {
       ident = `${ident}__${count + 1}`;
     }
-    sortedMap.set(src, ident);
+    identifiers[idx] = ident;
   }
 
   // Return in original input order
   const result = new Map<string, string>();
-  for (const src of sources) {
-    result.set(src, sortedMap.get(src)!);
+  for (let i = 0; i < sources.length; i++) {
+    result.set(sources[i], identifiers[i]);
   }
   return result;
 }

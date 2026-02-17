@@ -57,7 +57,6 @@ describe('determinism', () => {
     const ir1 = String(result1.artifacts['scene.svjif.json'].content);
     const ir2 = String(result2.artifacts['scene.svjif.json'].content);
 
-    expect(sha256(ir1)).toBe(sha256(ir2));
     expect(ir1).toBe(ir2);
   });
 
@@ -140,7 +139,7 @@ describe('determinism', () => {
           {
             id: 'node:z2',
             kind: 'Rect',
-            props: { x: 10, y: 10, width: 50, height: 50, fill: '#red' },
+            props: { x: 10, y: 10, width: 50, height: 50, fill: '#ff0000' },
             zIndex: 2,
             visible: true,
           },
@@ -156,7 +155,7 @@ describe('determinism', () => {
     expect(ir.nodes.map((n: { id: string }) => n.id)).toEqual(['node:z1', 'node:z2', 'node:z3']);
   });
 
-  it('10 shuffled node orderings of the same scene → identical IR hashes', async () => {
+  it('4 rotated node orderings of the same scene → identical IR hashes', async () => {
     const baseNodes = [
       { id: 'n:a', kind: 'Rect', props: { x: 0, y: 0, width: 10, height: 10, fill: '#f00' }, zIndex: 2 },
       { id: 'n:b', kind: 'Text', props: { x: 0, y: 0, content: 'B', color: '#fff' }, zIndex: 1 },

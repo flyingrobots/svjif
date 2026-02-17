@@ -19,7 +19,7 @@ export function parseGraphql(sdl: string, filename?: string): DocumentNode {
         : { file: filename ?? '<inline>', line: 1, column: 1 };
 
     throw new ParseError(
-      SVJifErrorCode.E_INTERNAL_INVARIANT,
+      SVJifErrorCode.E_INPUT_INVALID_SDL,
       `GraphQL SDL parse error: ${cause instanceof Error ? cause.message : String(cause)}`,
       { cause, location },
     );

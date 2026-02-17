@@ -3,6 +3,7 @@ import type { CompilerInput } from '../types/compiler';
 import type { Artifact } from '../types/artifacts';
 import { stableStringify } from '../util/stableStringify';
 import { hashString } from '../canonical/hashing';
+import { cmpStr } from '../util/identifiers';
 
 export const COMPARATOR_VERSION = '1' as const;
 
@@ -68,10 +69,6 @@ export function emitReceiptArtifact(
 
 // ─── Internals ───────────────────────────────────────────────────────────────
 
-function cmpStr(a: string, b: string): number {
-  return a < b ? -1 : a > b ? 1 : 0;
-}
-
 function normalizeZIndex(z: number | undefined): number {
   return z ?? 0;
 }
@@ -79,8 +76,8 @@ function normalizeZIndex(z: number | undefined): number {
 type SanitizedNode = Omit<CanonicalSceneAst['nodes'][number], 'sourceRef' | '__typename'>;
 
 function sanitize(node: CanonicalSceneAst['nodes'][number]): SanitizedNode {
-  const { sourceRef: _s, ...rest } = node as any;
-  const { __typename: _t, ...clean } = rest as any;
+  const n = node as Omit<typeof node, 'sourceRef' | '__typename'> & { sourceRef?: unknown; __typename?: unknown };
+  const { sourceRef: _s, __typename: _t, ...clean } = n;
   return clean as SanitizedNode;
 }
 
