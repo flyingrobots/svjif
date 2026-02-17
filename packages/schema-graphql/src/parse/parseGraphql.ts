@@ -1,4 +1,4 @@
-import { parse, GraphQLError, type DocumentNode } from 'graphql';
+import { parse, Source, GraphQLError, type DocumentNode } from 'graphql';
 import { ParseError, SVJifErrorCode } from '@svjif/compiler-core';
 
 /**
@@ -7,7 +7,7 @@ import { ParseError, SVJifErrorCode } from '@svjif/compiler-core';
  */
 export function parseGraphql(sdl: string, filename?: string): DocumentNode {
   try {
-    return parse(sdl);
+    return parse(new Source(sdl, filename ?? '<inline>'));
   } catch (cause) {
     const location =
       cause instanceof GraphQLError && cause.locations?.[0]
