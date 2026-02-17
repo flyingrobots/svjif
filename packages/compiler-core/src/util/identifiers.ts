@@ -95,8 +95,13 @@ export function buildIdentifierMap(
   sources: string[],
   opts: IdentifierOptions = DEFAULT_OPTS,
 ): Map<string, string> {
+  // Precondition: sources must be unique. The output Map is keyed by source string,
+  // so duplicate sources cannot be represented — the last one would silently overwrite.
+  if (new Set(sources).size !== sources.length) {
+    throw new Error('buildIdentifierMap: duplicate source strings are not supported');
+  }
+
   // Sort indices bytewise by source value for deterministic collision resolution.
-  // Using indices (not values) preserves per-occurrence uniqueness for duplicate sources.
   const sortedIndices = sources.map((_, i) => i).sort((a, b) => cmpStr(sources[a], sources[b]));
 
   const used = new Map<string, number>(); // identifier base → count
