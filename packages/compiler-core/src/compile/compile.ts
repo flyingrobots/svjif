@@ -13,14 +13,10 @@ import {
 } from '../errors';
 
 import { parseInputToCanonicalAst, type ParseInputDeps } from './parseInput';
-import { stableStringify } from '../util/stableStringify';
 import { HASH_ALGORITHM } from '../canonical/hashing';
-
-// TODO: wire these modules as you implement phases
-// import { normalizeCanonicalAst } from '../canonical/normalize';
-// import { validateCanonicalAst } from './validateAst';
-// import { emitSvjifIrArtifact } from './emitIr';
-// import { emitTypesArtifact } from './emitTypes';
+import { validateCanonicalAst, VALIDATION_RULE_IDS } from './validateAst';
+import { emitSvjifIrArtifact, emitReceiptArtifact, IR_ARTIFACT_KEY, IR_RECEIPT_KEY, IR_VERSION } from './emitIr';
+import { emitTypesArtifact } from './emitTypes';
 
 const DEFAULT_OPTIONS: CompileOptions = {
   target: 'svjif-ir-v1',
@@ -32,7 +28,6 @@ const DEFAULT_OPTIONS: CompileOptions = {
   },
   strict: true,
   failOnWarnings: false,
-  deterministicIds: true,
   canonicalize: true,
 };
 
@@ -45,16 +40,11 @@ export async function compile(input: CompilerInput, deps?: ParseInputDeps): Prom
   const artifacts: ArtifactMap = {};
 
   try {
-    // Phase 1: Parse -> Canonical AST
-    const ast = await parseInputToCanonicalAst(input, diagnostics, deps);
+    // Phase 1: Parse → Canonical AST
+    const canonicalAst = await parseInputToCanonicalAst(input, diagnostics, deps);
 
-    // Phase 2: Canonicalization
-    // TODO: if (options.canonicalize) ast = normalizeCanonicalAst(ast, options)
-    const canonicalAst = ast;
-
-    // Phase 3: Semantic validation
-    // TODO: diagnostics.push(...validateCanonicalAst(canonicalAst, options))
-    diagnostics.push(...validateStub(canonicalAst));
+    // Phase 2: Semantic validation
+    diagnostics.push(...validateCanonicalAst(canonicalAst, options));
 
     // Hard stop on errors
     const hasErrors = diagnostics.some((d) => d.severity === 'error');
@@ -62,19 +52,27 @@ export async function compile(input: CompilerInput, deps?: ParseInputDeps): Prom
       return finalize(false, canonicalAst, artifacts, diagnostics, input.format, started);
     }
 
-    // Phase 4: Emit artifacts
-    // TODO: replace stubs with real emitters
-    if (options.emit.irJson) {
-      artifacts['scene.svjif.json'] = emitIrStub(canonicalAst);
-    }
-    if (options.emit.tsTypes) {
-      artifacts['types.ts'] = emitTypesStub(canonicalAst);
-    }
+    // Phase 3: Emit artifacts
+    // Reject unsupported features before any artifacts are written
     if (options.emit.jsonSchema) {
-      artifacts['scene.svjif.schema.json'] = emitSchemaStub();
+      diagnostics.push({
+        code: SVJifErrorCode.E_FEATURE_NOT_IMPLEMENTED,
+        severity: 'error',
+        message: 'emit.jsonSchema is not yet implemented. Remove jsonSchema: true from emit options.',
+        details: { feature: 'jsonSchema' },
+      });
+      return finalize(false, canonicalAst, artifacts, diagnostics, input.format, started);
+    }
+    if (options.emit.irJson && canonicalAst) {
+      const irArtifact = emitSvjifIrArtifact(canonicalAst);
+      artifacts[IR_ARTIFACT_KEY] = irArtifact;
+
+      artifacts[IR_RECEIPT_KEY] = emitReceiptArtifact(input, irArtifact.content as string, VALIDATION_RULE_IDS);
+    }
+    if (options.emit.tsTypes && canonicalAst) {
+      artifacts['types.ts'] = emitTypesArtifact(canonicalAst);
     }
     if (options.emit.binaryPack) {
-      // TODO: implement pack step later
       diagnostics.push({
         code: SVJifErrorCode.W_BINARY_PACK_NOT_IMPLEMENTED,
         severity: 'warning',
@@ -113,7 +111,7 @@ function finalize(
     diagnostics,
     metadata: {
       compilerVersion: COMPILER_VERSION,
-      irVersion: ok ? 'svjif-ir/1' : undefined,
+      irVersion: IR_ARTIFACT_KEY in artifacts ? IR_VERSION : undefined,
       inputFormat,
       elapsedMs: Date.now() - started,
       hashAlgorithm: HASH_ALGORITHM,
@@ -130,86 +128,5 @@ function mergeOptions(base: CompileOptions, partial?: CompileOptions): CompileOp
       ...base.emit,
       ...(partial.emit ?? {}),
     },
-  };
-}
-
-/* ---------------------- STUBS (replace incrementally) ---------------------- */
-
-function validateStub(ast: CanonicalSceneAst | undefined): Diagnostic[] {
-  if (!ast) return [];
-  const out: Diagnostic[] = [];
-  if (ast.scene.width <= 0 || ast.scene.height <= 0) {
-    out.push({
-      code: SVJifErrorCode.E_SCENE_DIMENSIONS_INVALID,
-      severity: 'error',
-      message: 'Scene width/height must be > 0',
-    });
-  }
-  return out;
-}
-
-function emitIrStub(ast: CanonicalSceneAst | undefined) {
-  // Sort nodes deterministically: ascending zIndex, then ascending id
-  const rawNodes = ast?.nodes ?? [];
-  const sortedNodes = [...rawNodes]
-    .sort((a, b) => {
-      const zA = a.zIndex ?? 0;
-      const zB = b.zIndex ?? 0;
-      if (zA !== zB) return zA - zB;
-      return a.id < b.id ? -1 : a.id > b.id ? 1 : 0;
-    })
-    // Strip sourceRef from IR output: it contains source locations that vary with whitespace
-    .map(({ sourceRef: _sourceRef, ...node }) => node);
-
-  const content = stableStringify(
-    {
-      irVersion: 'svjif-ir/1',
-      scene: ast?.scene ?? null,
-      nodes: sortedNodes,
-      bindings: ast?.bindings ?? [],
-      animations: ast?.animations ?? [],
-    },
-    { space: 2 },
-  );
-
-  return {
-    path: 'scene.svjif.json',
-    content,
-    mediaType: 'application/json',
-    encoding: 'utf8' as const,
-  };
-}
-
-function emitTypesStub(_ast: CanonicalSceneAst | undefined) {
-  const content = `// Auto-generated by @svjif/compiler-core
-export interface SceneRoot {
-  id: string;
-  width: number;
-  height: number;
-}
-`;
-  return {
-    path: 'types.ts',
-    content,
-    mediaType: 'text/plain',
-    encoding: 'utf8' as const,
-  };
-}
-
-function emitSchemaStub() {
-  const content = JSON.stringify(
-    {
-      $schema: 'https://json-schema.org/draft/2020-12/schema',
-      title: 'SVJif Scene IR v1',
-      type: 'object',
-    },
-    null,
-    2,
-  );
-  return {
-    path: 'scene.svjif.schema.json',
-    content,
-    mediaType: 'application/json',
-    encoding: 'utf8' as const,
   };
 }

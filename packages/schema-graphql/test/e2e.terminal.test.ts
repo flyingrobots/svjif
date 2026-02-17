@@ -39,7 +39,6 @@ function makeInput(sdl: string, filename = 'terminal.graphql'): CompilerInput {
       emit: { irJson: true, tsTypes: true },
       strict: true,
       failOnWarnings: false,
-      deterministicIds: true,
       canonicalize: true,
     },
   };
@@ -91,7 +90,6 @@ describe('e2e: Terminal SDL fixture', () => {
     const ir1 = String(r1.artifacts['scene.svjif.json'].content);
     const ir2 = String(r2.artifacts['scene.svjif.json'].content);
 
-    expect(sha256(ir1)).toBe(sha256(ir2));
     expect(ir1).toBe(ir2);
   });
 

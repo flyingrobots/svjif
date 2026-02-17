@@ -27,7 +27,11 @@ export const graphqlToCanonicalAst: GraphqlToCanonicalAst = async (args: {
   // Step 2: Extract scene definition
   const scene = extractScene(doc, diagnostics, filename);
   if (!scene) {
-    throw new Error('Scene extraction failed — see diagnostics');
+    const reason =
+      diagnostics.length > 0
+        ? diagnostics[diagnostics.length - 1].message
+        : 'Scene extraction failed';
+    throw new Error(reason);
   }
 
   // Step 3: Extract nodes

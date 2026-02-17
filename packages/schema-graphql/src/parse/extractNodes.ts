@@ -1,12 +1,11 @@
 import {
-  getLocation,
-  type Source,
   type DirectiveNode,
 } from 'graphql';
 import { ParseError, SVJifErrorCode } from '@svjif/compiler-core';
 import type { Diagnostic, NodeKind, SourceRef } from '@svjif/compiler-core';
 import { isSvjifNodeKind } from '../directives/v1';
 import type { ExtractedScene } from './extractScene';
+import { nodeSourceRef } from './sourceRef';
 
 export interface ExtractedNode {
   fieldName: string;
@@ -22,21 +21,6 @@ export interface ExtractedNode {
   props?: Record<string, unknown>;
   sourceRef: SourceRef;
   fieldOrder: number;
-}
-
-function nodeSourceRef(
-  node: { loc?: { start: number; source: Source } },
-  filename?: string,
-): SourceRef {
-  if (node.loc) {
-    const { line, column } = getLocation(node.loc.source, node.loc.start);
-    return {
-      file: filename ?? node.loc.source.name ?? '<inline>',
-      line,
-      column,
-    };
-  }
-  return { file: filename ?? '<inline>', line: 1, column: 1 };
 }
 
 function getDirectiveArgValue(
@@ -61,6 +45,8 @@ function getDirectiveArgValue(
   }
 }
 
+const KNOWN_SVJIF_DIRS = new Set(['svjif_scene', 'svjif_node', 'svjif_bind', 'svjif_style']);
+
 /**
  * Extracts all @svjif_node field definitions from the scene type.
  * - `SVJIF_W_UNUSED_FIELD` only for unknown directives with `svjif_` prefix
@@ -81,16 +67,13 @@ export function extractNodes(
     // Check for unknown svjif_* directives (warn only for svjif_ prefixed)
     if (field.directives) {
       for (const dir of field.directives) {
-        if (dir.name.value.startsWith('svjif_') && dir.name.value !== 'svjif_node') {
-          const knownSvjifDirs = new Set(['svjif_scene', 'svjif_node', 'svjif_bind', 'svjif_style']);
-          if (!knownSvjifDirs.has(dir.name.value)) {
-            diagnostics.push({
-              code: SVJifErrorCode.W_UNUSED_FIELD,
-              severity: 'warning',
-              message: `Unknown SVJif directive @${dir.name.value} on field "${field.name.value}" — ignoring`,
-              location: nodeSourceRef(dir, filename),
-            });
-          }
+        if (dir.name.value.startsWith('svjif_') && !KNOWN_SVJIF_DIRS.has(dir.name.value)) {
+          diagnostics.push({
+            code: SVJifErrorCode.W_UNUSED_FIELD,
+            severity: 'warning',
+            message: `Unknown SVJif directive @${dir.name.value} on field "${field.name.value}" — ignoring`,
+            location: nodeSourceRef(dir, filename),
+          });
         }
       }
     }
@@ -131,9 +114,21 @@ export function extractNodes(
         const parsed = JSON.parse(propsRaw);
         if (typeof parsed === 'object' && parsed !== null && !Array.isArray(parsed)) {
           props = parsed as Record<string, unknown>;
+        } else {
+          diagnostics.push({
+            code: SVJifErrorCode.E_DIRECTIVE_ARG_INVALID_TYPE,
+            severity: 'warning',
+            message: `Field "${field.name.value}" props argument must be a JSON object — ignoring`,
+            location: sourceRef,
+          });
         }
       } catch {
-        // Ignore invalid props JSON — field will still be included with geometry only
+        diagnostics.push({
+          code: SVJifErrorCode.E_DIRECTIVE_ARG_INVALID_TYPE,
+          severity: 'warning',
+          message: `Field "${field.name.value}" has an invalid props JSON value — ignoring props argument`,
+          location: sourceRef,
+        });
       }
     }
 

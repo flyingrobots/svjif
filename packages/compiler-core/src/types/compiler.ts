@@ -14,7 +14,6 @@ export interface CompileOptions {
   };
   strict?: boolean;
   failOnWarnings?: boolean;
-  deterministicIds?: boolean;
   canonicalize?: boolean;
 }
 
@@ -30,7 +29,7 @@ export interface CompileMetadata {
   irVersion?: string;
   inputFormat: InputFormat;
   elapsedMs: number;
-  hashAlgorithm?: string;
+  hashAlgorithm?: 'sha256';
 }
 
 export interface CompileResult {

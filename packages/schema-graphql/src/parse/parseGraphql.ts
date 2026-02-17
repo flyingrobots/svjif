@@ -1,4 +1,4 @@
-import { parse, GraphQLError, type DocumentNode } from 'graphql';
+import { parse, Source, GraphQLError, type DocumentNode } from 'graphql';
 import { ParseError, SVJifErrorCode } from '@svjif/compiler-core';
 
 /**
@@ -6,20 +6,21 @@ import { ParseError, SVJifErrorCode } from '@svjif/compiler-core';
  * Wraps graphql-js parse errors into a typed ParseError.
  */
 export function parseGraphql(sdl: string, filename?: string): DocumentNode {
+  const effectiveName = filename ?? '<inline>';
   try {
-    return parse(sdl);
+    return parse(new Source(sdl, effectiveName));
   } catch (cause) {
     const location =
       cause instanceof GraphQLError && cause.locations?.[0]
         ? {
-            file: filename ?? '<inline>',
+            file: effectiveName,
             line: cause.locations[0].line,
             column: cause.locations[0].column,
           }
-        : { file: filename ?? '<inline>', line: 1, column: 1 };
+        : { file: effectiveName, line: 1, column: 1 };
 
     throw new ParseError(
-      SVJifErrorCode.E_INTERNAL_INVARIANT,
+      SVJifErrorCode.E_INPUT_INVALID_SDL,
       `GraphQL SDL parse error: ${cause instanceof Error ? cause.message : String(cause)}`,
       { cause, location },
     );

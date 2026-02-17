@@ -26,7 +26,8 @@ export function hashString(input: string): string {
  * deterministicId('node', 'Terminal', 'title') → 'node_<sha256hex of "Terminal/title">'
  * deterministicId('scene', 'Terminal') → 'scene_<sha256hex of "Terminal">'
  */
-export function deterministicId(type: 'scene' | 'node', ...parts: string[]): string {
+export function deterministicId(type: 'scene' | 'node', first: string, ...rest: string[]): string {
+  const parts = [first, ...rest];
   const joined = parts.map((p) => p.trim()).join('/');
   const hex = hashString(joined);
   return `${type}_${hex}`;
