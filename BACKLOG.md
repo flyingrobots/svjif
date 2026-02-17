@@ -162,3 +162,39 @@ PR: either keep `Map<string,string>` with the throw guard (and document it clear
 the return type to `string[]` and update all callers and tests accordingly.
 
 ---
+
+### `schema-graphql/extractNodes` — runtime type validation for directive argument values
+**Source**: PR #1 review retrospective (raised in rounds 2–5, deferred)
+
+`getDirectiveArgValue` returns `string | number | boolean | undefined`, but the call sites at
+lines 102–109 in `extractNodes.ts` cast results with `as number | undefined`, `as boolean | undefined`,
+etc., without any runtime type assertion. If a user writes `@svjif_node(x: "oops")`, the string
+`"oops"` silently passes through as a `number` at the type level, corrupting geometry downstream.
+
+Fix: replace the unsafe `as` casts with runtime type guards that emit `E_DIRECTIVE_ARG_INVALID_TYPE`
+when the actual value type doesn't match the expected type (e.g. `typeof val === 'number'` for
+numeric args). Only `kind` (enum string) and `props` (special JSON parse) need special treatment.
+
+---
+
+### `schema-graphql` e2e — add explicit tie-breaking assertion for same-zIndex nodes
+**Source**: PR #1 review retrospective (rounds 3–5)
+
+The Terminal SDL e2e test (`e2e.terminal.test.ts`) verifies that nodes are sorted by `zIndex`
+in the IR output but does not verify the within-zIndex tie-breaker: `kind ASC → id ASC` (bytewise).
+The Terminal fixture has three nodes all at `zIndex: 0` (none specified), so the output order is
+entirely determined by the tie-breaker. Add an assertion that pins the exact node order
+(e.g. `expect(ir.nodes.map(n => n.id)).toEqual(['expected', 'order', 'here'])`) to verify
+the tie-breaking contract end-to-end.
+
+---
+
+### `compiler-core/types/compiler.ts` — clarify receipt auto-emission coupling
+**Source**: PR #1 review round 5
+
+`emit.irJson: true` silently co-emits the receipt artifact with no public API knob to disable it.
+Add a JSDoc comment on the `irJson` field explaining that the receipt is always co-emitted when
+`irJson` is enabled. Alternatively, expose a `receipt?: boolean` field in the emit options
+(defaulting to `true` when `irJson` is enabled) to make the coupling explicit in the public API.
+
+---

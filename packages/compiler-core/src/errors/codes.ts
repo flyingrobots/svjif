@@ -25,13 +25,17 @@ export const SVJifErrorCode = {
 
   // Emit / runtime
   E_EMIT_TARGET_UNSUPPORTED: 'SVJIF_E_EMIT_TARGET_UNSUPPORTED',
-  E_FEATURE_NOT_IMPLEMENTED: 'SVJIF_E_FEATURE_NOT_IMPLEMENTED',
   E_INTERNAL_INVARIANT: 'SVJIF_E_INTERNAL_INVARIANT',
+
+  // General / cross-phase — applicable from any pipeline stage
+  /** Thrown from any phase when a feature gate is not yet implemented (e.g. jsonSchema emit). */
+  E_FEATURE_NOT_IMPLEMENTED: 'SVJIF_E_FEATURE_NOT_IMPLEMENTED',
 
   // Warnings
   W_UNUSED_FIELD: 'SVJIF_W_UNUSED_FIELD',
   W_STYLE_IGNORED_FOR_KIND: 'SVJIF_W_STYLE_IGNORED_FOR_KIND',
   W_PROP_OVERRIDDEN: 'SVJIF_W_PROP_OVERRIDDEN',
+  /** @deprecated Use E_FEATURE_NOT_IMPLEMENTED for unimplemented feature gates. */
   W_BINARY_PACK_NOT_IMPLEMENTED: 'SVJIF_W_BINARY_PACK_NOT_IMPLEMENTED',
 } as const;
 

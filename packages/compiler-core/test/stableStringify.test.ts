@@ -144,4 +144,24 @@ describe('stableStringify', () => {
       expect(result).toBe('{\n  "a": 1\n}');
     });
   });
+
+  describe('special numeric values', () => {
+    it('NaN serializes as null (matches JSON.stringify)', () => {
+      expect(stableStringify({ v: NaN })).toBe('{"v":null}');
+    });
+
+    it('Infinity serializes as null (matches JSON.stringify)', () => {
+      expect(stableStringify({ v: Infinity })).toBe('{"v":null}');
+    });
+
+    it('-Infinity serializes as null (matches JSON.stringify)', () => {
+      expect(stableStringify({ v: -Infinity })).toBe('{"v":null}');
+    });
+
+    it('top-level undefined serializes as "null" (unlike JSON.stringify which returns undefined)', () => {
+      // stableStringify always returns a string — it does not mirror JSON.stringify's
+      // undefined-for-top-level-undefined behaviour.
+      expect(stableStringify(undefined as any)).toBe('null');
+    });
+  });
 });

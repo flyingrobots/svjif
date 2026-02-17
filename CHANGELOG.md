@@ -64,6 +64,16 @@
 - `docs/ERROR_CODES.md`: Added `SVJIF_E_INPUT_INVALID_JSON` and `SVJIF_E_INPUT_INVALID_SDL` entries
 - `docs/ERROR_CODES.md`: Corrected `SVJIF_E_REF_TARGET_NOT_FOUND` — `refKind` detail is `"animation"` only; bindings use `SVJIF_E_BIND_TARGET_NOT_FOUND`
 
+### Post-Sprint-3 PR Feedback (Round 5)
+
+- `schema-graphql/extractNodes`: removed redundant `!== 'svjif_node'` guard — `svjif_node` is already in `KNOWN_SVJIF_DIRS`, so the outer check was dead code
+- `schema-graphql/extractNodes`: props JSON that parses successfully but is not an object (e.g. arrays, primitives) now emits `E_DIRECTIVE_ARG_INVALID_TYPE` warning — previously discarded silently
+- `schema-graphql/parseGraphql`: extracted `filename ?? '<inline>'` to `effectiveName` const — eliminates triple repetition in the function body
+- `errors/codes.ts`: moved `E_FEATURE_NOT_IMPLEMENTED` out of "Emit / runtime" to its own "General / cross-phase" section with a clarifying JSDoc; added `@deprecated` note on `W_BINARY_PACK_NOT_IMPLEMENTED`
+- `test/validateAst`: added `validateCanonicalAst(undefined)` test + `NaN`/`Infinity` dimension tests (3 new tests, 19 total)
+- `test/emitTypes`: pinned exact expected values for `toTypeIdentifier` loose assertions (`'🚀'` → `'Anonymous'`, `'type'` → `'Type'`); pinned collision winner per bytewise ordering
+- `test/stableStringify`: added NaN, Infinity, -Infinity, and top-level-undefined serialization contract tests (4 new tests, 26 total)
+
 ### Post-Sprint-3 PR Feedback (Round 4)
 
 - `emitIr`: `normalizeZIndex` now guards against `NaN`/`Infinity` via `Number.isFinite` — previously these values passed through and corrupted the topological sort comparator

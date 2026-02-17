@@ -67,15 +67,13 @@ export function extractNodes(
     // Check for unknown svjif_* directives (warn only for svjif_ prefixed)
     if (field.directives) {
       for (const dir of field.directives) {
-        if (dir.name.value.startsWith('svjif_') && dir.name.value !== 'svjif_node') {
-          if (!KNOWN_SVJIF_DIRS.has(dir.name.value)) {
-            diagnostics.push({
-              code: SVJifErrorCode.W_UNUSED_FIELD,
-              severity: 'warning',
-              message: `Unknown SVJif directive @${dir.name.value} on field "${field.name.value}" — ignoring`,
-              location: nodeSourceRef(dir, filename),
-            });
-          }
+        if (dir.name.value.startsWith('svjif_') && !KNOWN_SVJIF_DIRS.has(dir.name.value)) {
+          diagnostics.push({
+            code: SVJifErrorCode.W_UNUSED_FIELD,
+            severity: 'warning',
+            message: `Unknown SVJif directive @${dir.name.value} on field "${field.name.value}" — ignoring`,
+            location: nodeSourceRef(dir, filename),
+          });
         }
       }
     }
@@ -116,6 +114,13 @@ export function extractNodes(
         const parsed = JSON.parse(propsRaw);
         if (typeof parsed === 'object' && parsed !== null && !Array.isArray(parsed)) {
           props = parsed as Record<string, unknown>;
+        } else {
+          diagnostics.push({
+            code: SVJifErrorCode.E_DIRECTIVE_ARG_INVALID_TYPE,
+            severity: 'warning',
+            message: `Field "${field.name.value}" props argument must be a JSON object — ignoring`,
+            location: sourceRef,
+          });
         }
       } catch {
         diagnostics.push({

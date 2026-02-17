@@ -161,6 +161,23 @@ describe('validateCanonicalAst', () => {
     expect(diags.some((d) => d.code === SVJifErrorCode.E_CYCLE_DETECTED)).toBe(false);
   });
 
+  it('undefined AST → empty diagnostics (no-op, not an error)', () => {
+    const diags = validateCanonicalAst(undefined);
+    expect(diags).toHaveLength(0);
+  });
+
+  it('NaN scene width → E_SCENE_DIMENSIONS_INVALID', () => {
+    const ast = makeAst({ scene: makeScene({ width: NaN }) });
+    const diags = validateCanonicalAst(ast);
+    expect(diags.some((d) => d.code === SVJifErrorCode.E_SCENE_DIMENSIONS_INVALID)).toBe(true);
+  });
+
+  it('Infinity scene height → E_SCENE_DIMENSIONS_INVALID', () => {
+    const ast = makeAst({ scene: makeScene({ height: Infinity }) });
+    const diags = validateCanonicalAst(ast);
+    expect(diags.some((d) => d.code === SVJifErrorCode.E_SCENE_DIMENSIONS_INVALID)).toBe(true);
+  });
+
   it('complete ring cycle (all nodes point in a circle) — E_CYCLE_DETECTED', () => {
     const nodes: CanonicalSceneAst['nodes'] = [];
     for (let i = 0; i < 10_000; i++) {

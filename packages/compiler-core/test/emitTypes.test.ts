@@ -28,30 +28,23 @@ describe('toTypeIdentifier', () => {
     expect(toTypeIdentifier('hello_world')).toBe('Hello_world');
   });
 
-  it('emoji and unicode → valid TS identifier via NFKC normalization', () => {
-    // Emoji has no NFKC ident chars → empty → fallback
-    const result = toTypeIdentifier('🚀');
-    expect(/^[A-Za-z_$][A-Za-z0-9_$]*$/.test(result)).toBe(true);
-    expect(result.length).toBeGreaterThan(0);
+  it('emoji → no NFKC ident chars → emptyFallback ("Anonymous")', () => {
+    // Emoji decomposes to no identifier chars under NFKC → empty segments → fallback
+    expect(toTypeIdentifier('🚀')).toBe('Anonymous');
   });
 
-  it('unicode letters → included in identifier', () => {
-    // NFKC normalized unicode letters are valid ident chars after split
-    // "café" → "Café" as a segment
-    const result = toTypeIdentifier('café');
-    expect(result.length).toBeGreaterThan(0);
+  it('non-ASCII char acts as separator ("café" → "Caf" — é is not in [A-Za-z0-9_$])', () => {
+    // 'é' (U+00E9) is not in the ident char set, so it splits "café" → segments ["caf"] → "Caf"
+    expect(toTypeIdentifier('café')).toBe('Caf');
   });
 
-  it('reserved keyword "type" → prefixed', () => {
-    const result = toTypeIdentifier('type');
-    expect(result).not.toBe('type');
-    expect(result.length).toBeGreaterThan(0);
+  it('reserved keyword "type" → PascalCase "Type" (exact-case RESERVED check; "Type" is not reserved)', () => {
+    // After the exact-case fix, "type" → PascalCase "Type"; RESERVED only contains lowercase "type"
+    expect(toTypeIdentifier('type')).toBe('Type');
   });
 
-  it('reserved keyword "null" → prefixed', () => {
-    const result = toTypeIdentifier('null');
-    expect(result).not.toBe('null');
-    expect(result.length).toBeGreaterThan(0);
+  it('reserved keyword "null" → PascalCase "Null" (exact-case RESERVED check; "Null" is not reserved)', () => {
+    expect(toTypeIdentifier('null')).toBe('Null');
   });
 
   it('identifier starting with digit → invalid-start prefix applied', () => {
@@ -79,21 +72,20 @@ describe('buildIdentifierMap', () => {
     expect(map.get('footer')).toBe('Footer');
   });
 
-  it('two sources normalizing to same identifier → __2 suffix', () => {
-    // 'foo-bar' → ['foo','bar'] → 'FooBar'
-    // 'fooBar' → ['fooBar'] → 'FooBar'   (both produce the same PascalCase)
+  it('two sources normalizing to same identifier → earlier bytewise wins unsuffixed', () => {
+    // 'foo-bar' → 'FooBar'; 'fooBar' → 'FooBar'
+    // Bytewise: '-' (0x2D) < 'B' (0x42), so 'foo-bar' < 'fooBar' → 'foo-bar' wins unsuffixed
     const map = buildIdentifierMap(['foo-bar', 'fooBar']);
-    const values = [...map.values()];
-    expect(values).toContain('FooBar');
-    expect(values.some((v) => v.startsWith('FooBar__'))).toBe(true);
+    expect(map.get('foo-bar')).toBe('FooBar');
+    expect(map.get('fooBar')).toBe('FooBar__2');
   });
 
-  it('collision: sources that both normalize to same identifier', () => {
-    // 'foo-bar' → 'FooBar', 'foo bar' → 'FooBar' (both split on separator)
+  it('collision: space-separated vs dash-separated — space wins bytewise', () => {
+    // 'foo bar' → 'FooBar'; 'foo-bar' → 'FooBar'
+    // Bytewise: ' ' (0x20) < '-' (0x2D), so 'foo bar' < 'foo-bar' → 'foo bar' wins unsuffixed
     const map = buildIdentifierMap(['foo-bar', 'foo bar']);
-    const values = [...map.values()];
-    expect(values.some((v) => v === 'FooBar')).toBe(true);
-    expect(values.some((v) => v.startsWith('FooBar__'))).toBe(true);
+    expect(map.get('foo bar')).toBe('FooBar');
+    expect(map.get('foo-bar')).toBe('FooBar__2');
   });
 
   it('respects bytewise sort for collision resolution (not locale sort)', () => {
