@@ -157,10 +157,10 @@ describe('determinism', () => {
 
   it('4 distinct rotated node orderings of the same scene → identical IR hashes', async () => {
     const baseNodes = [
-      { id: 'n:a', kind: 'Rect', props: { x: 0, y: 0, width: 10, height: 10, fill: '#f00' }, zIndex: 2 },
-      { id: 'n:b', kind: 'Text', props: { x: 0, y: 0, content: 'B', color: '#fff' }, zIndex: 1 },
-      { id: 'n:c', kind: 'Group', props: { x: 0, y: 0 }, zIndex: 3 },
-      { id: 'n:d', kind: 'Rect', props: { x: 5, y: 5, width: 5, height: 5, fill: '#00f' }, zIndex: 2 },
+      { id: 'n:a', kind: 'Rect', props: { x: 0, y: 0, width: 10, height: 10, fill: '#f00' }, zIndex: 2, visible: true },
+      { id: 'n:b', kind: 'Text', props: { x: 0, y: 0, content: 'B', color: '#fff' }, zIndex: 1, visible: true },
+      { id: 'n:c', kind: 'Group', props: { x: 0, y: 0 }, zIndex: 3, visible: true },
+      { id: 'n:d', kind: 'Rect', props: { x: 5, y: 5, width: 5, height: 5, fill: '#00f' }, zIndex: 2, visible: true },
     ];
 
     function makeInput(nodes: typeof baseNodes): CompilerInput {
@@ -169,7 +169,7 @@ describe('determinism', () => {
         source: JSON.stringify({
           kind: 'Scene',
           astVersion: '1',
-          scene: { id: 'scene:shuffle', width: 100, height: 100 },
+          scene: { id: 'scene:shuffle', width: 100, height: 100, units: 'px' },
           nodes,
           metadata: { sourceFormat: 'canonical-ast-json' },
         }),
