@@ -40,6 +40,13 @@
 
 ### Bug Fixes
 
+- `emitIr`: O(n²) `shift()`+re-sort queue replaced with `qi`-pointer dequeue and batch merge of newly-ready children — O(n log n) for tree-structured graphs
+- `schema-graphql/adapter`: diagnostic message now embedded in thrown `Error` when `extractScene` fails; "see diagnostics" was a lie when caller omitted the `diagnostics` array
+- `schema-graphql/extractNodes`: `knownSvjifDirs` `Set` was re-allocated inside a nested loop on every call; hoisted to module-level constant
+- `schema-graphql/extractNodes`: invalid `props` JSON argument now emits a `W_UNUSED_FIELD` warning instead of silently discarding the value
+- `identifiers`: `buildIdentifierMap` now throws immediately on duplicate source strings instead of silently producing a corrupt output `Map`
+- `test/determinism`: rotation test loop corrected to produce 4 distinct orderings, matching its description (old loop generated 4 unique rotations but iterated 10 times)
+
 - Invalid JSON input no longer emits `SVJIF_E_INTERNAL_INVARIANT`; now correctly emits `SVJIF_E_INPUT_INVALID_JSON`
 - Invalid GraphQL SDL input now emits `SVJIF_E_INPUT_INVALID_SDL` instead of `SVJIF_E_INTERNAL_INVARIANT`
 - `NaN` scene dimensions now correctly rejected by `sceneDimensions` validation rule
