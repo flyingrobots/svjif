@@ -201,11 +201,11 @@ describe('determinism', () => {
       source: JSON.stringify({
         kind: 'Scene',
         astVersion: '1',
-        scene: { id: 'scene:parent-child', width: 100, height: 100 },
+        scene: { id: 'scene:parent-child', width: 100, height: 100, units: 'px' },
         // Child listed before parent in input
         nodes: [
-          { id: 'child', kind: 'Rect', props: { x: 0, y: 0, width: 10, height: 10 }, zIndex: 1, parentId: 'parent' },
-          { id: 'parent', kind: 'Group', props: { x: 0, y: 0 }, zIndex: 1 },
+          { id: 'child', kind: 'Rect', props: { x: 0, y: 0, width: 10, height: 10 }, zIndex: 1, visible: true, parentId: 'parent' },
+          { id: 'parent', kind: 'Group', props: { x: 0, y: 0 }, zIndex: 1, visible: true },
         ],
         metadata: { sourceFormat: 'canonical-ast-json' },
       }),
@@ -225,11 +225,11 @@ describe('determinism', () => {
       source: JSON.stringify({
         kind: 'Scene',
         astVersion: '1',
-        scene: { id: 'scene:tiebreak', width: 100, height: 100 },
+        scene: { id: 'scene:tiebreak', width: 100, height: 100, units: 'px' },
         // 'n:z' > 'n:a' bytewise, so 'n:a' should come first
         nodes: [
-          { id: 'n:z', kind: 'Group', props: {}, zIndex: 1 },
-          { id: 'n:a', kind: 'Group', props: {}, zIndex: 1 },
+          { id: 'n:z', kind: 'Group', props: {}, zIndex: 1, visible: true },
+          { id: 'n:a', kind: 'Group', props: {}, zIndex: 1, visible: true },
         ],
         metadata: { sourceFormat: 'canonical-ast-json' },
       }),

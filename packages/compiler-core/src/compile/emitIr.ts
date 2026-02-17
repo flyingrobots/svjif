@@ -44,7 +44,7 @@ export const IR_HASH_ALG = 'sha256' as const;
 export function emitReceiptArtifact(
   input: CompilerInput,
   irContent: string,
-  ruleIds: string[],
+  ruleIds: ReadonlyArray<string>,
 ): Artifact {
   const inputHash = hashString(input.source);
   const irHash = hashString(irContent);
@@ -73,7 +73,7 @@ export function emitReceiptArtifact(
 // ─── Internals ───────────────────────────────────────────────────────────────
 
 function normalizeZIndex(z: number | undefined): number {
-  return z ?? 0;
+  return Number.isFinite(z) ? (z as number) : 0;
 }
 
 type SanitizedNode = Omit<CanonicalSceneAst['nodes'][number], 'sourceRef' | '__typename'>;

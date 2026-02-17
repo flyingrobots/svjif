@@ -23,14 +23,14 @@ const REQUIRED_PROPS: Partial<Record<NodeKind, string[]>> = {
 };
 
 // Exported for use in receipt fingerprint
-export const VALIDATION_RULE_IDS = [
+export const VALIDATION_RULE_IDS: ReadonlyArray<string> = [
   'sceneDimensions',
   'nodeKindValid',
   'duplicateId',
   'danglingRef',
   'cycleDetection',
   'requiredProps',
-];
+] as const;
 
 export function validateCanonicalAst(
   ast: CanonicalSceneAst | undefined,

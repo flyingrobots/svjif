@@ -1,12 +1,11 @@
 import {
-  getLocation,
-  type Source,
   type DirectiveNode,
 } from 'graphql';
 import { ParseError, SVJifErrorCode } from '@svjif/compiler-core';
 import type { Diagnostic, NodeKind, SourceRef } from '@svjif/compiler-core';
 import { isSvjifNodeKind } from '../directives/v1';
 import type { ExtractedScene } from './extractScene';
+import { nodeSourceRef } from './sourceRef';
 
 export interface ExtractedNode {
   fieldName: string;
@@ -22,21 +21,6 @@ export interface ExtractedNode {
   props?: Record<string, unknown>;
   sourceRef: SourceRef;
   fieldOrder: number;
-}
-
-function nodeSourceRef(
-  node: { loc?: { start: number; source: Source } },
-  filename?: string,
-): SourceRef {
-  if (node.loc) {
-    const { line, column } = getLocation(node.loc.source, node.loc.start);
-    return {
-      file: filename ?? node.loc.source.name ?? '<inline>',
-      line,
-      column,
-    };
-  }
-  return { file: filename ?? '<inline>', line: 1, column: 1 };
 }
 
 function getDirectiveArgValue(
@@ -135,7 +119,7 @@ export function extractNodes(
         }
       } catch {
         diagnostics.push({
-          code: SVJifErrorCode.W_UNUSED_FIELD,
+          code: SVJifErrorCode.E_DIRECTIVE_ARG_INVALID_TYPE,
           severity: 'warning',
           message: `Field "${field.name.value}" has an invalid props JSON value — ignoring props argument`,
           location: sourceRef,

@@ -1,6 +1,4 @@
 import {
-  getLocation,
-  type Source,
   type DocumentNode,
   type ObjectTypeDefinitionNode,
   type DirectiveNode,
@@ -9,6 +7,7 @@ import {
 import { ParseError, SVJifErrorCode } from '@svjif/compiler-core';
 import type { Diagnostic, SourceRef } from '@svjif/compiler-core';
 import { validateSvjifDirectiveVersion } from '../directives/v1';
+import { nodeSourceRef } from './sourceRef';
 
 export interface ExtractedScene {
   typeName: string;
@@ -19,25 +18,6 @@ export interface ExtractedScene {
   background?: string;
   sourceRef: SourceRef;
   typeNode: ObjectTypeDefinitionNode;
-}
-
-/**
- * Returns a SourceRef from a graphql-js AST node's loc, or a fallback.
- * Null-safe: if loc is absent, returns file/<inline>, line 1, col 1.
- */
-function nodeSourceRef(
-  node: { loc?: { start: number; source: Source } },
-  filename?: string,
-): SourceRef {
-  if (node.loc) {
-    const { line, column } = getLocation(node.loc.source, node.loc.start);
-    return {
-      file: filename ?? node.loc.source.name ?? '<inline>',
-      line,
-      column,
-    };
-  }
-  return { file: filename ?? '<inline>', line: 1, column: 1 };
 }
 
 function getArgValue(

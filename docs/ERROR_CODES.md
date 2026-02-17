@@ -124,7 +124,7 @@ All compiler errors use stable, documented error codes. Never ignore or suppress
 
 **Severity**: Error
 **Message**: Referenced target node does not exist
-**Details**: `refKind: "binding" | "animation"` — indicates whether a binding or animation caused the failure
+**Details**: `refKind: "animation"` — emitted when an animation references a non-existent node (binding mismatches use `SVJIF_E_BIND_TARGET_NOT_FOUND`)
 **Fix**: Reference only nodes that exist in the scene
 
 ### `SVJIF_E_BIND_EXPR_INVALID`

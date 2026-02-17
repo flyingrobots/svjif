@@ -161,7 +161,7 @@ describe('validateCanonicalAst', () => {
     expect(diags.some((d) => d.code === SVJifErrorCode.E_CYCLE_DETECTED)).toBe(false);
   });
 
-  it('deep spiral with cycle at tip — E_CYCLE_DETECTED', () => {
+  it('complete ring cycle (all nodes point in a circle) — E_CYCLE_DETECTED', () => {
     const nodes: CanonicalSceneAst['nodes'] = [];
     for (let i = 0; i < 10_000; i++) {
       nodes.push({
