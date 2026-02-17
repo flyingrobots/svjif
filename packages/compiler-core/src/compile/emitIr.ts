@@ -112,22 +112,30 @@ function topoSort(ast: CanonicalSceneAst): SanitizedNode[] {
 
   const result: SanitizedNode[] = [];
 
-  while (ready.length > 0) {
-    const node = ready.shift()!;
+  // Use an index pointer instead of shift() to avoid O(n) array reindexing per dequeue.
+  // Newly-ready children are collected per iteration, sorted once, then merged into the
+  // unprocessed tail — keeping the queue sorted without a full re-sort each insertion.
+  let qi = 0;
+  while (qi < ready.length) {
+    const node = ready[qi++];
     result.push(sanitize(node));
 
-    // Sort children by tie-breaker before pushing
-    const ch = [...(children.get(node.id) ?? [])];
-    sortReady(ch);
-
-    for (const child of ch) {
+    const newlyReady: CanonicalSceneAst['nodes'][number][] = [];
+    for (const child of children.get(node.id) ?? []) {
       const newDeg = (inDegree.get(child.id) ?? 0) - 1;
       inDegree.set(child.id, newDeg);
       if (newDeg === 0) {
-        // Insert into ready in sorted position
-        ready.push(child);
-        sortReady(ready);
+        newlyReady.push(child);
       }
+    }
+
+    if (newlyReady.length > 0) {
+      sortReady(newlyReady);
+      // Merge the sorted tail with sorted new arrivals, then replace the tail.
+      const tail = ready.splice(qi);
+      tail.push(...newlyReady);
+      sortReady(tail);
+      for (const n of tail) ready.push(n);
     }
   }
 
