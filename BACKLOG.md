@@ -66,3 +66,55 @@ When `parseGraphql` throws a `ParseError` with `E_INPUT_INVALID_SDL`, `parseInpu
 catches it and converts to a diagnostic but loses the GraphQL source location (`line`, `column`)
 from the original `ParseError`. Propagate the location into `Diagnostic.details` so callers can
 report precise SDL error positions to users.
+
+---
+
+## Post-Sprint 3 PR Feedback (Round 2)
+
+### ESLint — add no-new-in-loops rule for Set/Map allocations
+**Source**: PR #1 review retrospective
+
+`new Set([...])` was allocated inside a nested loop in `extractNodes.ts` on every directive of
+every field. A custom ESLint rule (or `no-restricted-syntax` selector) that flags `new Set(` /
+`new Map(` inside loop bodies would catch this class of issue automatically during development.
+
+---
+
+### `DiagnosticsError` — attach diagnostics array to thrown Errors
+**Source**: PR #1 review retrospective
+
+When `adapter.ts` throws on `extractScene` failure, the thrown `Error` said "see diagnostics"
+but the diagnostics were in a local array invisible to the caller. Introduce a `DiagnosticsError`
+class in `@svjif/compiler-core` that carries a `diagnostics: Diagnostic[]` field. Any throw site
+that has collected diagnostics should use this class so callers can always inspect the reason.
+
+---
+
+### `buildIdentifierMap` — property-based tests (fast-check)
+**Source**: PR #1 review retrospective
+
+A latent bug in `buildIdentifierMap` for duplicate source strings was discovered during code
+review — the output `Map` silently overwrote earlier entries. Property-based testing with
+`fast-check` (arbitrary string arrays, including duplicates) would have caught this. Extend the
+existing `fast-check` backlog item (#4) or add a dedicated suite for `identifiers.ts`.
+
+---
+
+### `extractNodes` — add test: `W_UNUSED_FIELD` emitted for malformed `props` JSON
+**Source**: PR #1 review retrospective
+
+`extractNodes.ts` now emits `W_UNUSED_FIELD` when the `props` directive argument contains
+invalid JSON. Add a test in `extractNodes.test.ts` asserting that a field with `props: "bad json"`
+produces exactly one `W_UNUSED_FIELD` warning with the expected message.
+
+---
+
+### `identifiers` — add test: `buildIdentifierMap` throws on duplicate sources
+**Source**: PR #1 review retrospective
+
+`buildIdentifierMap` now throws `Error('buildIdentifierMap: duplicate source strings are not
+supported')` when given duplicate inputs. Add a unit test asserting this throw, and a
+complementary test that unique inputs with the same `toTypeIdentifier` result (collision)
+still produce the correct `__N`-suffixed output.
+
+---
