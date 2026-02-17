@@ -118,3 +118,47 @@ complementary test that unique inputs with the same `toTypeIdentifier` result (c
 still produce the correct `__N`-suffixed output.
 
 ---
+
+## Post-Sprint 3 PR Feedback (Round 3)
+
+### `compiler-core` — extract a `constants.ts` barrel for all artifact path strings
+**Source**: PR #1 review retrospective
+
+`'scene.svjif.json'`, `'scene.svjif.json.receipt'`, and `'svjif-ir/1'` were used as string
+literals in multiple files before being extracted as named constants in round 3. A single
+`src/constants.ts` barrel (or equivalent) for all artifact paths, IR version strings, and other
+shared literals would prevent this class of issue from recurring across future sprints.
+
+---
+
+### CI — add markdownlint for CHANGELOG and docs validation
+**Source**: PR #1 review retrospective
+
+The CHANGELOG had duplicate `### Features` and `### Tests` headings, a missing `kind ASC`
+tie-breaker in a sort order description, and descending test count bullets — all caught in code
+review, not CI. Add `markdownlint` (with `MD024` for duplicate headings) to the CI pipeline and
+enforce it on `CHANGELOG.md` and `docs/`. Consider a custom rule or script to detect
+contradictory/descending test count totals.
+
+---
+
+### `CONTRIBUTING.md` — document the artifact path constants convention
+**Source**: PR #1 review retrospective
+
+Add a `CONTRIBUTING.md` section (or expand an existing one) that states: "Never use string
+literals for artifact paths, IR versions, or other shared protocol strings. Import and use the
+exported constants from `src/constants.ts` (or the relevant module). Inline string literals that
+duplicate a constant will be rejected in code review."
+
+---
+
+### `buildIdentifierMap` — resolve API contract: `Map<string,string>` vs `string[]`
+**Source**: PR #1 review retrospective (raised in rounds 2 and 3)
+
+CodeRabbit flagged in two consecutive reviews that `Map<string,string>` collapses duplicate
+source strings and suggested returning `string[]` (parallel to input) instead. The current
+implementation throws on duplicates as a guard. Decide the definitive API contract in a focused
+PR: either keep `Map<string,string>` with the throw guard (and document it clearly), or change
+the return type to `string[]` and update all callers and tests accordingly.
+
+---
