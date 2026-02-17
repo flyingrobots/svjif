@@ -94,8 +94,14 @@ All compiler errors use stable, documented error codes. Never ignore or suppress
 
 ### `SVJIF_E_BIND_TARGET_NOT_FOUND`
 **Severity**: Error
-**Message**: Binding target node or property does not exist
-**Fix**: Reference only nodes and properties that exist
+**Message**: Binding target node does not exist
+**Fix**: Reference only nodes that exist in the scene. Note: animation target mismatches use `SVJIF_E_REF_TARGET_NOT_FOUND`.
+
+### `SVJIF_E_REF_TARGET_NOT_FOUND`
+**Severity**: Error
+**Message**: Referenced target node does not exist
+**Details**: `refKind: "binding" | "animation"` — indicates whether a binding or animation caused the failure
+**Fix**: Reference only nodes that exist in the scene
 
 ### `SVJIF_E_BIND_EXPR_INVALID`
 **Severity**: Error
@@ -108,6 +114,12 @@ All compiler errors use stable, documented error codes. Never ignore or suppress
 **Severity**: Error
 **Message**: Unsupported emit target
 **Fix**: Use `target: 'svjif-ir-v1'` (only supported target in v0.1)
+
+### `SVJIF_E_FEATURE_NOT_IMPLEMENTED`
+**Severity**: Error
+**Message**: Requested feature is not yet implemented
+**Details**: `feature` — name of the requested feature (e.g. `"jsonSchema"`)
+**Fix**: Remove the unsupported option from your emit config. Check the changelog for implementation status.
 
 ### `SVJIF_E_INTERNAL_INVARIANT`
 **Severity**: Error

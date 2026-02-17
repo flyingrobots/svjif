@@ -104,10 +104,10 @@ export function validateCanonicalAst(
   for (const anim of ast.animations ?? []) {
     if (!nodeIds.has(anim.targetNodeId)) {
       diagnostics.push({
-        code: SVJifErrorCode.E_BIND_TARGET_NOT_FOUND,
+        code: SVJifErrorCode.E_REF_TARGET_NOT_FOUND,
         severity: 'error',
         message: `Animation "${anim.id}" references non-existent node "${anim.targetNodeId}"`,
-        details: { animationId: anim.id, targetNodeId: anim.targetNodeId },
+        details: { refKind: 'animation', animationId: anim.id, targetNodeId: anim.targetNodeId },
       });
     }
   }

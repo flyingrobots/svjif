@@ -39,7 +39,6 @@ function makeInput(sdl: string, filename = 'terminal.graphql'): CompilerInput {
       emit: { irJson: true, tsTypes: true },
       strict: true,
       failOnWarnings: false,
-      deterministicIds: true,
       canonicalize: true,
     },
   };

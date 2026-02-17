@@ -42,7 +42,6 @@ const BASE_INPUT: CompilerInput = {
     emit: { irJson: true, tsTypes: false },
     strict: true,
     failOnWarnings: false,
-    deterministicIds: true,
     canonicalize: true,
   },
 };

@@ -13,14 +13,10 @@ import {
 } from '../errors';
 
 import { parseInputToCanonicalAst, type ParseInputDeps } from './parseInput';
-import { stableStringify } from '../util/stableStringify';
 import { HASH_ALGORITHM } from '../canonical/hashing';
 import { validateCanonicalAst, VALIDATION_RULE_IDS } from './validateAst';
 import { emitSvjifIrArtifact, emitReceiptArtifact } from './emitIr';
 import { emitTypesArtifact } from './emitTypes';
-
-// TODO: wire these modules as you implement phases
-// import { normalizeCanonicalAst } from '../canonical/normalize';
 
 const DEFAULT_OPTIONS: CompileOptions = {
   target: 'svjif-ir-v1',
@@ -32,7 +28,6 @@ const DEFAULT_OPTIONS: CompileOptions = {
   },
   strict: true,
   failOnWarnings: false,
-  deterministicIds: true,
   canonicalize: true,
 };
 
@@ -45,14 +40,10 @@ export async function compile(input: CompilerInput, deps?: ParseInputDeps): Prom
   const artifacts: ArtifactMap = {};
 
   try {
-    // Phase 1: Parse -> Canonical AST
-    const ast = await parseInputToCanonicalAst(input, diagnostics, deps);
+    // Phase 1: Parse → Canonical AST
+    const canonicalAst = await parseInputToCanonicalAst(input, diagnostics, deps);
 
-    // Phase 2: Canonicalization
-    // TODO: if (options.canonicalize) ast = normalizeCanonicalAst(ast, options)
-    const canonicalAst = ast;
-
-    // Phase 3: Semantic validation
+    // Phase 2: Semantic validation
     diagnostics.push(...validateCanonicalAst(canonicalAst, options));
 
     // Hard stop on errors
@@ -61,12 +52,11 @@ export async function compile(input: CompilerInput, deps?: ParseInputDeps): Prom
       return finalize(false, canonicalAst, artifacts, diagnostics, input.format, started);
     }
 
-    // Phase 4: Emit artifacts
+    // Phase 3: Emit artifacts
     if (options.emit.irJson && canonicalAst) {
       const irArtifact = emitSvjifIrArtifact(canonicalAst);
       artifacts['scene.svjif.json'] = irArtifact;
 
-      // Determinism receipt
       const irContent = typeof irArtifact.content === 'string' ? irArtifact.content : '';
       artifacts['scene.svjif.json.receipt'] = emitReceiptArtifact(input, irContent, VALIDATION_RULE_IDS);
     }
@@ -74,10 +64,15 @@ export async function compile(input: CompilerInput, deps?: ParseInputDeps): Prom
       artifacts['types.ts'] = emitTypesArtifact(canonicalAst);
     }
     if (options.emit.jsonSchema) {
-      artifacts['scene.svjif.schema.json'] = emitSchemaStub();
+      diagnostics.push({
+        code: SVJifErrorCode.E_FEATURE_NOT_IMPLEMENTED,
+        severity: 'error',
+        message: 'emit.jsonSchema is not yet implemented. Remove jsonSchema: true from emit options.',
+        details: { feature: 'jsonSchema' },
+      });
+      return finalize(false, canonicalAst, artifacts, diagnostics, input.format, started);
     }
     if (options.emit.binaryPack) {
-      // TODO: implement pack step later
       diagnostics.push({
         code: SVJifErrorCode.W_BINARY_PACK_NOT_IMPLEMENTED,
         severity: 'warning',
@@ -133,28 +128,5 @@ function mergeOptions(base: CompileOptions, partial?: CompileOptions): CompileOp
       ...base.emit,
       ...(partial.emit ?? {}),
     },
-  };
-}
-
-/* ---------------------- Remaining stubs ---------------------- */
-
-// stableStringify is kept imported for potential future use in schema stub
-void stableStringify;
-
-function emitSchemaStub() {
-  const content = JSON.stringify(
-    {
-      $schema: 'https://json-schema.org/draft/2020-12/schema',
-      title: 'SVJif Scene IR v1',
-      type: 'object',
-    },
-    null,
-    2,
-  );
-  return {
-    path: 'scene.svjif.schema.json',
-    content,
-    mediaType: 'application/json',
-    encoding: 'utf8' as const,
   };
 }

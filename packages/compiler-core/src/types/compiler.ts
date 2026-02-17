@@ -14,7 +14,6 @@ export interface CompileOptions {
   };
   strict?: boolean;
   failOnWarnings?: boolean;
-  deterministicIds?: boolean;
   canonicalize?: boolean;
 }
 

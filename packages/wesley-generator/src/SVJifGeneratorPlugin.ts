@@ -75,7 +75,6 @@ export class SVJifGeneratorPlugin {
         },
         strict: true,
         failOnWarnings: false,
-        deterministicIds: true,
         canonicalize: true,
       },
     };

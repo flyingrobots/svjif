@@ -73,6 +73,22 @@ describe('validateCanonicalAst', () => {
     expect(diags.some((d) => d.code === SVJifErrorCode.E_BIND_TARGET_NOT_FOUND)).toBe(true);
   });
 
+  it('animation with bad targetNodeId → E_REF_TARGET_NOT_FOUND with refKind=animation', () => {
+    const ast = makeAst({
+      nodes: [],
+      animations: [
+        { id: 'a1', targetNodeId: 'ghost', property: 'opacity', keyframes: [{ t: 0, value: 1 }] },
+      ],
+    });
+    const diags = validateCanonicalAst(ast);
+    const match = diags.find((d) => d.code === SVJifErrorCode.E_REF_TARGET_NOT_FOUND);
+    expect(match).toBeDefined();
+    expect((match?.details as any)?.refKind).toBe('animation');
+    expect((match?.details as any)?.animationId).toBe('a1');
+    // Must NOT report as E_BIND_TARGET_NOT_FOUND
+    expect(diags.some((d) => d.code === SVJifErrorCode.E_BIND_TARGET_NOT_FOUND)).toBe(false);
+  });
+
   it('cycle A→B→A → E_CYCLE_DETECTED', () => {
     const ast = makeAst({
       nodes: [

@@ -35,28 +35,28 @@ export function emitSvjifIrArtifact(ast: CanonicalSceneAst): Artifact {
   };
 }
 
+export const IR_HASH_ALG = 'sha256' as const;
+
 export function emitReceiptArtifact(
   input: CompilerInput,
   irContent: string,
   ruleIds: string[],
 ): Artifact {
   const inputHash = hashString(input.source);
+  const irHash = hashString(irContent);
   const rulesetFingerprint = hashString([...ruleIds].sort().join('\n'));
 
   const content = stableStringify(
     {
       comparatorVersion: COMPARATOR_VERSION,
       inputHash,
+      irHash,
+      irHashAlg: IR_HASH_ALG,
       irVersion: 'svjif-ir/1',
       rulesetFingerprint,
     },
     { space: 2 },
   );
-
-  // irContent is accepted as a parameter but the receipt doesn't hash the IR itself —
-  // the spec only calls for input hash + ruleset fingerprint. We keep the param
-  // for future use (e.g. irHash) without using it now.
-  void irContent;
 
   return {
     path: 'scene.svjif.json.receipt',

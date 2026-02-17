@@ -23,33 +23,19 @@ describe('compile() golden path', () => {
         {
           id: 'node:header',
           kind: 'Rect',
-          props: {
-            x: 0,
-            y: 0,
-            width: 800,
-            height: 40,
-            fill: '#2a2a2a',
-          },
+          props: { x: 0, y: 0, width: 800, height: 40, fill: '#2a2a2a' },
           zIndex: 1,
           visible: true,
         },
         {
           id: 'node:title',
           kind: 'Text',
-          props: {
-            x: 20,
-            y: 10,
-            content: 'Terminal v0.3',
-            color: '#00ff00',
-            fontSize: 14,
-          },
+          props: { x: 20, y: 10, content: 'Terminal v0.3', color: '#00ff00', fontSize: 14 },
           zIndex: 2,
           visible: true,
         },
       ],
-      metadata: {
-        sourceFormat: 'canonical-ast-json',
-      },
+      metadata: { sourceFormat: 'canonical-ast-json' },
     };
 
     const result = await compile({
@@ -58,37 +44,27 @@ describe('compile() golden path', () => {
       filename: 'fixtures/valid.scene.json',
       options: {
         target: 'svjif-ir-v1',
-        emit: {
-          irJson: true,
-          tsTypes: true,
-          jsonSchema: false,
-          binaryPack: false,
-        },
+        emit: { irJson: true, tsTypes: true, jsonSchema: false, binaryPack: false },
         strict: true,
         failOnWarnings: false,
-        deterministicIds: true,
         canonicalize: true,
       },
     });
 
     expect(result.ok).toBe(true);
     expect(result.diagnostics.filter((d) => d.severity === 'error')).toHaveLength(0);
-
     expect(result.artifacts['scene.svjif.json']).toBeDefined();
     expect(result.artifacts['types.ts']).toBeDefined();
 
-    const irRaw = result.artifacts['scene.svjif.json'].content;
-    expect(typeof irRaw === 'string').toBe(true);
-
-    const ir = JSON.parse(String(irRaw));
+    const ir = JSON.parse(String(result.artifacts['scene.svjif.json'].content));
     expect(ir.irVersion).toBe('svjif-ir/1');
     expect(ir.scene.id).toBe('scene:terminal');
     expect(Array.isArray(ir.nodes)).toBe(true);
     expect(ir.nodes.length).toBe(2);
   });
 
-  it('scene.svjif.json.receipt is present on successful compile', async () => {
-    const validCanonicalAst = {
+  it('scene.svjif.json.receipt is present and contains irHash', async () => {
+    const source = JSON.stringify({
       kind: 'Scene',
       astVersion: '1',
       scene: { id: 'scene:receipt-test', width: 400, height: 300 },
@@ -96,13 +72,12 @@ describe('compile() golden path', () => {
         { id: 'n1', kind: 'Rect', props: { x: 0, y: 0, width: 400, height: 300, fill: '#000' }, zIndex: 1 },
       ],
       metadata: { sourceFormat: 'canonical-ast-json' },
-    };
+    });
 
-    const source = JSON.stringify(validCanonicalAst);
     const result = await compile({
       format: 'canonical-ast-json',
       source,
-      options: { target: 'svjif-ir-v1', emit: { irJson: true, tsTypes: false }, strict: true, failOnWarnings: false, deterministicIds: true, canonicalize: true },
+      options: { target: 'svjif-ir-v1', emit: { irJson: true, tsTypes: false } },
     });
 
     expect(result.ok).toBe(true);
@@ -111,9 +86,13 @@ describe('compile() golden path', () => {
     const receipt = JSON.parse(String(result.artifacts['scene.svjif.json.receipt'].content));
     expect(receipt.comparatorVersion).toBe('1');
     expect(receipt.irVersion).toBe('svjif-ir/1');
-    expect(typeof receipt.inputHash).toBe('string');
     expect(receipt.inputHash).toBe(sha256(source));
     expect(typeof receipt.rulesetFingerprint).toBe('string');
+
+    // irHash must match sha256 of the emitted IR
+    const irContent = String(result.artifacts['scene.svjif.json'].content);
+    expect(receipt.irHash).toBe(sha256(irContent));
+    expect(receipt.irHashAlg).toBe('sha256');
   });
 
   it('inputHash in receipt matches sha256(input.source)', async () => {
@@ -127,7 +106,7 @@ describe('compile() golden path', () => {
     const result = await compile({
       format: 'canonical-ast-json',
       source,
-      options: { target: 'svjif-ir-v1', emit: { irJson: true, tsTypes: false }, strict: true, failOnWarnings: false, deterministicIds: true, canonicalize: true },
+      options: { target: 'svjif-ir-v1', emit: { irJson: true, tsTypes: false } },
     });
 
     expect(result.ok).toBe(true);
@@ -146,7 +125,7 @@ describe('compile() golden path', () => {
     const input = {
       format: 'canonical-ast-json' as const,
       source,
-      options: { target: 'svjif-ir-v1' as const, emit: { irJson: true, tsTypes: false }, strict: true, failOnWarnings: false, deterministicIds: true, canonicalize: true },
+      options: { target: 'svjif-ir-v1' as const, emit: { irJson: true, tsTypes: false } },
     };
 
     const r1 = await compile(input);
@@ -161,6 +140,25 @@ describe('compile() golden path', () => {
     expect(sha256(rec1)).toBe(sha256(rec2));
   });
 
+  it('emit.jsonSchema: true → E_FEATURE_NOT_IMPLEMENTED error', async () => {
+    const source = JSON.stringify({
+      kind: 'Scene', astVersion: '1',
+      scene: { id: 'scene:schema-test', width: 100, height: 100 },
+      nodes: [],
+      metadata: { sourceFormat: 'canonical-ast-json' },
+    });
+
+    const result = await compile({
+      format: 'canonical-ast-json',
+      source,
+      options: { target: 'svjif-ir-v1', emit: { jsonSchema: true } },
+    });
+
+    expect(result.ok).toBe(false);
+    const codes = result.diagnostics.map((d) => d.code);
+    expect(codes).toContain(SVJifErrorCode.E_FEATURE_NOT_IMPLEMENTED);
+  });
+
   it('invalid fixture (empty input) fails with deterministic error code', async () => {
     const result = await compile({
       format: 'canonical-ast-json',
@@ -168,13 +166,9 @@ describe('compile() golden path', () => {
       filename: 'fixtures/invalid.empty.json',
       options: {
         target: 'svjif-ir-v1',
-        emit: {
-          irJson: true,
-          tsTypes: true,
-        },
+        emit: { irJson: true, tsTypes: true },
         strict: true,
         failOnWarnings: false,
-        deterministicIds: true,
         canonicalize: true,
       },
     });
