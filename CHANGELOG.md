@@ -18,7 +18,7 @@
 - **`@svjif/compiler-core`**: Add `hashString()` and `deterministicId()` hashing utilities in `src/canonical/hashing.ts` with stable SHA-256 contract
 - **`@svjif/compiler-core`**: Export `hashString`, `deterministicId`, `HASH_ALGORITHM`, `GraphqlToCanonicalAst`, `ParseInputDeps` from package index
 - **`@svjif/compiler-core`**: `compile()` now accepts optional `deps?: ParseInputDeps` second argument for adapter injection
-- **`@svjif/compiler-core`**: IR emitter uses `stableStringify`, sorts nodes by `(zIndex asc, id asc)`, strips `sourceRef` from output, adds `hashAlgorithm` to compile metadata
+- **`@svjif/compiler-core`**: IR emitter uses `stableStringify`, sorts nodes by `zIndex ASC → kind ASC → id ASC` (bytewise), strips `sourceRef` from output, adds `hashAlgorithm` to compile metadata
 - **`@svjif/compiler-core`**: `CompileMetadata` gains optional `hashAlgorithm` field (narrowed to `'sha256'`)
 - **`@svjif/schema-graphql`**: Full GraphQL SDL parser pipeline — `parseGraphql`, `extractScene`, `extractNodes`, `toCanonicalAst`
 - **`@svjif/schema-graphql`**: `graphqlToCanonicalAst` adapter exported from package root, satisfies `GraphqlToCanonicalAst` interface from compiler-core
@@ -28,8 +28,7 @@
 
 ### Tests
 
-- **`@svjif/compiler-core`**: 40 new tests across 2 new test files and 2 extended files — `validateAst` (15), `emitTypes` (19), `determinism` +4, `compile.golden` +3; total 76 tests (up from 36)
-- **`@svjif/compiler-core`**: 34 new tests — `stableStringify` (22), `parseInput` table-driven (9), `determinism` (3); total 36 tests
+- **`@svjif/compiler-core`**: 74 new tests across sprint 3 — first batch: `stableStringify` (22), `parseInput` table-driven (9), `determinism` (3) → 36 tests; second batch: `validateAst` (15), `emitTypes` (19), `determinism` +4, `compile.golden` +3 → total 79 tests
 - **`@svjif/schema-graphql`**: 42 new tests — `extractScene` (10), `extractNodes` (10), `toCanonicalAst` (14), `e2e.terminal` (8)
 - Cycle detection verifies Tier 2 is suppressed when Tier 1 errors present
 - 4 rotated input orderings of the same scene produce byte-identical IR (SHA-256 verified)
@@ -46,6 +45,11 @@
 - `schema-graphql/extractNodes`: invalid `props` JSON argument now emits a `W_UNUSED_FIELD` warning instead of silently discarding the value
 - `identifiers`: `buildIdentifierMap` now throws immediately on duplicate source strings instead of silently producing a corrupt output `Map`
 - `test/determinism`: rotation test loop corrected to produce 4 distinct orderings, matching its description (old loop generated 4 unique rotations but iterated 10 times)
+- `emitIr`: `IR_VERSION`, `IR_ARTIFACT_KEY`, `IR_RECEIPT_KEY` exported as named constants; magic string literals removed from `compile.ts` and `emitIr.ts`
+- `identifiers`: `RESERVED.has(result.toLowerCase())` removed — PascalCase output like `'Delete'` is a valid TypeScript identifier; only exact-case match is checked
+- `parseGraphql`: SDL wrapped in `Source(sdl, filename)` so the returned `DocumentNode` carries filename metadata through to downstream diagnostics
+- `test/determinism`: shuffle fixture aligned with `BASE_INPUT` — added `visible: true` to all nodes and `units: 'px'` to scene
+- `docs/ERROR_CODES.md`: corrected `Rect` required props example — only `width` and `height` are required; `x` and `y` are optional
 
 - Invalid JSON input no longer emits `SVJIF_E_INTERNAL_INVARIANT`; now correctly emits `SVJIF_E_INPUT_INVALID_JSON`
 - Invalid GraphQL SDL input now emits `SVJIF_E_INPUT_INVALID_SDL` instead of `SVJIF_E_INTERNAL_INVARIANT`

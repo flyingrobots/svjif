@@ -106,7 +106,7 @@ All compiler errors use stable, documented error codes. Never ignore or suppress
 
 **Severity**: Error
 **Message**: Required property is missing for node kind
-**Fix**: Provide all required properties. Example: `Rect` requires `x`, `y`, `width`, `height`
+**Fix**: Provide all required properties. Example: `Rect` requires `width`, `height` (`x` and `y` are optional)
 
 ### `SVJIF_E_PROP_INVALID_VALUE`
 
