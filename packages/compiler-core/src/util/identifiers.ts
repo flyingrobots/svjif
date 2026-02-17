@@ -77,7 +77,9 @@ export function toTypeIdentifier(source: string, opts: IdentifierOptions = DEFAU
   }
 
   // Step 5: reserved keyword
-  if (RESERVED.has(result) || RESERVED.has(result.toLowerCase())) {
+  // RESERVED contains lowercase keywords; result is PascalCase.
+  // Check exact-case only — 'Delete' is a valid TypeScript identifier even though 'delete' is not.
+  if (RESERVED.has(result)) {
     result = opts.reservedPrefix + result;
   }
 
