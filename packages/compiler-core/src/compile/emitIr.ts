@@ -6,6 +6,9 @@ import { hashString } from '../canonical/hashing';
 import { cmpStr } from '../util/identifiers';
 
 export const COMPARATOR_VERSION = '1' as const;
+export const IR_VERSION = 'svjif-ir/1' as const;
+export const IR_ARTIFACT_KEY = 'scene.svjif.json' as const;
+export const IR_RECEIPT_KEY = 'scene.svjif.json.receipt' as const;
 
 /**
  * Phase 1: Topological sort by parentId DAG.
@@ -19,7 +22,7 @@ export function emitSvjifIrArtifact(ast: CanonicalSceneAst): Artifact {
 
   const content = stableStringify(
     {
-      irVersion: 'svjif-ir/1',
+      irVersion: IR_VERSION,
       scene: ast.scene,
       nodes: sorted,
       bindings: ast.bindings ?? [],
@@ -29,7 +32,7 @@ export function emitSvjifIrArtifact(ast: CanonicalSceneAst): Artifact {
   );
 
   return {
-    path: 'scene.svjif.json',
+    path: IR_ARTIFACT_KEY,
     content,
     mediaType: 'application/json',
     encoding: 'utf8',
@@ -53,14 +56,14 @@ export function emitReceiptArtifact(
       inputHash,
       irHash,
       irHashAlg: IR_HASH_ALG,
-      irVersion: 'svjif-ir/1',
+      irVersion: IR_VERSION,
       rulesetFingerprint,
     },
     { space: 2 },
   );
 
   return {
-    path: 'scene.svjif.json.receipt',
+    path: IR_RECEIPT_KEY,
     content,
     mediaType: 'application/json',
     encoding: 'utf8',

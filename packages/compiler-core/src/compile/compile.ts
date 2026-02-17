@@ -15,7 +15,7 @@ import {
 import { parseInputToCanonicalAst, type ParseInputDeps } from './parseInput';
 import { HASH_ALGORITHM } from '../canonical/hashing';
 import { validateCanonicalAst, VALIDATION_RULE_IDS } from './validateAst';
-import { emitSvjifIrArtifact, emitReceiptArtifact } from './emitIr';
+import { emitSvjifIrArtifact, emitReceiptArtifact, IR_ARTIFACT_KEY, IR_RECEIPT_KEY, IR_VERSION } from './emitIr';
 import { emitTypesArtifact } from './emitTypes';
 
 const DEFAULT_OPTIONS: CompileOptions = {
@@ -65,9 +65,9 @@ export async function compile(input: CompilerInput, deps?: ParseInputDeps): Prom
     }
     if (options.emit.irJson && canonicalAst) {
       const irArtifact = emitSvjifIrArtifact(canonicalAst);
-      artifacts['scene.svjif.json'] = irArtifact;
+      artifacts[IR_ARTIFACT_KEY] = irArtifact;
 
-      artifacts['scene.svjif.json.receipt'] = emitReceiptArtifact(input, irArtifact.content as string, VALIDATION_RULE_IDS);
+      artifacts[IR_RECEIPT_KEY] = emitReceiptArtifact(input, irArtifact.content as string, VALIDATION_RULE_IDS);
     }
     if (options.emit.tsTypes && canonicalAst) {
       artifacts['types.ts'] = emitTypesArtifact(canonicalAst);
@@ -111,7 +111,7 @@ function finalize(
     diagnostics,
     metadata: {
       compilerVersion: COMPILER_VERSION,
-      irVersion: 'scene.svjif.json' in artifacts ? 'svjif-ir/1' : undefined,
+      irVersion: IR_ARTIFACT_KEY in artifacts ? IR_VERSION : undefined,
       inputFormat,
       elapsedMs: Date.now() - started,
       hashAlgorithm: HASH_ALGORITHM,
